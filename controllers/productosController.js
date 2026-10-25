@@ -1,4 +1,7 @@
 const productos = require('../models/productos');
+const ProductoMiddleware = require('../middlewares/productoMiddleware');
+
+const productoMiddleware = new ProductoMiddleware();
 
 const multer = require('multer');
 const shortid = require('shortid');
@@ -60,12 +63,19 @@ exports.nuevoProducto = async (req, res, next) => {
 //Mostrar productos 
 exports.mostrarProductos = async (req, res, next) => {
     try {
-        //obtener todos los productos 
-        const Productos = await productos.find({});
+        console.log(req.query)
+        const Productos = await productoMiddleware.traerProductos(req.query);
+        console.log(Productos);
         res.json(Productos);
+
     } catch (error) {
-        console.log(error);
-        next();
+        if (error.status === 500) {
+            return res.status(500).json({
+                mensaje: error.message
+            });
+        }
+
+        next(error);
     }
 }
 
@@ -113,10 +123,10 @@ exports.actualizarProducto = async (req, res, next) => {
 }
 
 //Eliminar un producto por ID
-exports.eliminarProducto = async(req, res, next) => {
+exports.eliminarProducto = async (req, res, next) => {
     try {
-        await productos.findByIdAndDelete({_id: req.params.idProducto});
-        res.json({mensaje : 'Producto Eliminado'});
+        await productos.findByIdAndDelete({ _id: req.params.idProducto });
+        res.json({ mensaje: 'Producto Eliminado' });
     } catch (error) {
         console.log(error);
         next();
