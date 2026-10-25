@@ -20,7 +20,7 @@ module.exports = function () {
     router.put('/users/password/:idUser', userController.actualizarPassword);
 
     //Carga de documentos del usuario por ID
-    //router.post('/users/:idUser', userController.verificacion);
+    //router.post('/users/verificacion/:idUser', userController.verificacion);
 
     //obtener todos los usuarios
     //router.get('/users', userController.mostrarUsers);

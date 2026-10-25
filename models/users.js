@@ -67,6 +67,10 @@ const usersSchema = new Schema({
         fechaRevision: Date,
         revisadoPor: { type: Schema.ObjectId, ref: 'users' },
         motivoRechazo: String
+    },
+    imagen: {
+        type: String,
+        trim: true
     }
 
 });
