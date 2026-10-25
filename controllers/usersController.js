@@ -1,23 +1,66 @@
 const Users = require('../models/users');
 
+const UsersMiddleware = require('../middlewares/userMiddleware');
+
+const usersMiddleware = new UsersMiddleware();
+
 //agregar un nuvo user
 
 exports.nuevoUser = async (req, res, next) => {
 
-    const users = new Users(req.body);
+    try {
+
+        await usersMiddleware.nuevoUser(req.body);
+
+        res.json({
+            mensaje: 'Se agregó un nuevo user'
+        });
+
+    } catch (error) {
+        if (error.status === 400) {
+            return res.status(401).json({
+                mensaje: error.message
+            });
+        }
+        if (error.status === 500) {
+            return res.status(500).json({
+                mensaje: "Internal server error"
+            });
+        }
+
+        next(error);
+    }
+}
+
+// Login 
+
+exports.login = async (req, res, next) => {
 
     try {
-        //almacenar el registro
-        await users.save();
-        res.json({ mensaje: 'se agrego un nuevo user' });
-    } catch (error) {
-        //si hay un error console.log y next
-        console.log(error);
-        next();
+        console.log(req.body)
+        await usersMiddleware.loginUser(req.body);
 
+        res.json({
+            mensaje: 'Login exitoso'
+        });
+
+    } catch (error) {
+        if (error.status === 401) {
+            return res.status(401).json({
+                mensaje: error.message
+            });
+        }
+        if (error.status === 500) {
+            return res.status(500).json({
+                mensaje: "Internal server error"
+            });
+        }
+
+        next(error);
     }
 
 }
+
 
 //muestra todos los users
 
@@ -36,7 +79,7 @@ exports.mostrarUsers = async (req, res, next) => {
 
 //mostrar user por ID
 
-exports.mostrarUser = async (req, res, next) => {
+/*exports.mostrarUser = async (req, res, next) => {
 
     try {
 
@@ -55,25 +98,89 @@ exports.mostrarUser = async (req, res, next) => {
         console.log(error);
         next();
     }
-}
+}*/
 
 //actualizar usuario por ID
 
 exports.actualizarUser = async (req, res, next) => {
     try {
 
-        const user = await Users.findOneAndUpdate({ _id: req.params.idUser },
-            req.body, {
-            new: true
-        });
+        await usersMiddleware.editarUser(req);
 
-        res.json(user);
+        res.json({
+            mensaje: 'Se actualizo la información'
+        });
 
     } catch (error) {
 
-        console.log(error);
-        next();
+        if (error.status === 400) {
+            return res.status(400).json({
+                mensaje: error.message
+            });
+        }
+        if (error.status === 500) {
+            console.log(error)
+            return res.status(500).json({
+                mensaje: "Internal server error"
+            });
+        }
 
+        next(error);
+    }
+}
+//actualizar contraseña por ID
+
+exports.actualizarPassword = async (req, res, next) => {
+    try {
+
+        await usersMiddleware.editarPassword(req);
+
+        res.json({
+            mensaje: 'Se actualizo la información'
+        });
+
+    } catch (error) {
+
+        if (error.status === 400) {
+            return res.status(400).json({
+                mensaje: error.message
+            });
+        }
+        if (error.status === 500) {
+            console.log(error)
+            return res.status(500).json({
+                mensaje: "Internal server error"
+            });
+        }
+
+        next(error);
+    }
+}
+
+exports.verificacion = async (req, res, next) => {
+    try {
+
+        await usersMiddleware.editarPassword(req);
+
+        res.json({
+            mensaje: 'Se actualizo la información'
+        });
+
+    } catch (error) {
+
+        if (error.status === 400) {
+            return res.status(400).json({
+                mensaje: error.message
+            });
+        }
+        if (error.status === 500) {
+            console.log(error)
+            return res.status(500).json({
+                mensaje: "Internal server error"
+            });
+        }
+
+        next(error);
     }
 }
 

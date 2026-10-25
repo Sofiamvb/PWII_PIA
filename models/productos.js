@@ -6,7 +6,7 @@ const productosSchema = new Schema({
         type: Schema.ObjectId,
         ref: 'users'
     },
-    categoria_produ: {
+    categoria: {
         type: Schema.ObjectId,
         ref: 'Categorias'
     },
@@ -26,9 +26,18 @@ const productosSchema = new Schema({
         type: Number,
         min: 0
     },
-    imagenes: [{ url, imgPrincipal 
-
-    }],
+    imagenes: [
+        {
+            url: {
+                type: String,
+                trim: true
+            },
+            imgPrincipal: {
+                type: Boolean,
+                default: false
+            }
+        }
+    ],
     status_aprobado: {
         type: Boolean
     },
