@@ -60,7 +60,7 @@ const usersSchema = new Schema({
         totalValoraciones: { type: Number, default: 0 }
     },
     verificacion: {
-        estado: { type: String, enum: ['sin_enviar', 'pendiente', 'aprobado', 'rechazado'], default: 'sin_enviar' },
+        estado: { type: String, enum: ['sin enviar', 'pendiente', 'aprobado', 'rechazado'], default: 'sin enviar' },
         tipoDocumento: { type: String, enum: ['credencial', 'constancia', 'otro'] },
         documentoUrl: String,
         fechaEnvio: Date,

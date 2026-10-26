@@ -20,13 +20,21 @@ module.exports = function () {
     router.put('/users/password/:idUser', userController.actualizarPassword);
 
     //Carga de documentos del usuario por ID
-    //router.post('/users/verificacion/:idUser', userController.verificacion);
+    router.post('/users/verificacion/:idUser', userController.subirArchivo, userController.verificacion);
+
+    //Mostrar info de usuario por id en perfil
+    router.get('/useresInfo/:idUser', userController.mostrarUser);
+
+    /*ADMIND*/
+
+    //CAMBIAR ESTADO DE LA VERIFICACION A APROBADO O RECHAZADO
+    router.get('/admin/mostrarVerificaciones', userController.mostrarVerificaciones);
+
+    //MOSTRAR USUARIOS CON EL ESTADO PENDIENTE DE DOCUMENTACION ADM
+    router.patch('/admin/verificacionEstatus/:idUser', userController.verificacionAdmin);
 
     //obtener todos los usuarios
     //router.get('/users', userController.mostrarUsers);
-
-    //muestra un usuario en especifico (ID)
-    //router.get('/users/:idUser', userController.mostrarUser);
 
     //Eliminar un usuario por id
     //router.delete('/users/:idUser', userController.eliminarUser);
