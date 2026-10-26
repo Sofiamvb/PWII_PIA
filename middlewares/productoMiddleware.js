@@ -1,6 +1,7 @@
 const { json } = require('express');
 const productos = require('../models/productos');
 const Reportes = require('../models/reportes');
+const Pedidos = require('../models/pedidos');
 const PuntoEncuentro = require('../models/puntoEncuentro');
 const CategoriasMiddleware = require('../middlewares/categoriasMiddleware')
 
@@ -193,6 +194,14 @@ class ProductoMiddleware {
 
         try {
 
+            // VALIDAR USUARIO
+            if (!data.usuario) {
+                const error = new Error("El usuario es obligatorio");
+                error.status = 400;
+                throw error;
+            }
+
+
             if (!data.nombre_produ || data.nombre_produ.trim() === '') {
                 const error = new Error("El nombre del producto es obligatorio");
                 error.status = 400;
@@ -242,12 +251,12 @@ class ProductoMiddleware {
             }
 
 
+
             const producto = new productos(data);
-
+            producto.usuario = data.usuario;
             await producto.save();
-            return producto;
         } catch (error) {
-
+            console.log(error);
             if (error.status) {
                 throw error;
             }
@@ -293,8 +302,19 @@ class ProductoMiddleware {
 
         // CREAR REPORTE DE UN PRODUCTO
             async reportarProducto(idProducto, data) {
+                    console.log(data.usuario_reporte);
+                
 
                 try {
+
+                     if (!data) {
+
+                    const error = new Error("No puedes dejar campos vacios");
+                    error.status = 400;
+                    throw error;
+                }
+
+
 
                     if (!data.usuario_reporte ||
                         !data.tipo_de_reporte ||
@@ -344,7 +364,6 @@ class ProductoMiddleware {
                         estadoReporte: 'pendiente'
 
                     });
-
 
                     await reporte.save();
 
@@ -511,7 +530,241 @@ class ProductoMiddleware {
                 throw err;
             }
         }
+        
+        async comprarProducto(idProducto, idComprador, cantidad) {
 
+         try {
+
+        cantidad = Number(cantidad);
+
+
+        // Validar cantidad
+        if (!cantidad || cantidad <= 0) {
+
+            const error = new Error("La cantidad debe ser mayor a 0");
+            error.status = 400;
+            throw error;
+
+        }
+
+
+        // Buscar producto
+        const producto = await productos.findById(idProducto)
+            .populate('categoria', 'nombre_categoria');
+
+
+        if (!producto) {
+
+            const error = new Error("El producto no existe");
+            error.status = 404;
+            throw error;
+
+        }
+
+
+        // Validar que el producto tenga vendedor
+        if (!producto.usuario) {
+
+            const error = new Error("El producto no tiene un vendedor asociado");
+            error.status = 400;
+            throw error;
+
+        }
+
+
+        // No permitir comprar tu propio producto
+        if (producto.usuario.toString() === idComprador) {
+
+            const error = new Error("No puedes comprar tu propio producto");
+            error.status = 400;
+            throw error;
+
+        }
+
+
+        // Revisar disponibilidad
+        if (producto.disponibilidad === false) {
+
+            const error = new Error("El producto no esta disponible");
+            error.status = 400;
+            throw error;
+
+        }
+
+
+        // Revisar stock
+        if (cantidad > producto.stock) {
+
+            const error = new Error("No hay suficiente stock");
+            error.status = 400;
+            throw error;
+
+        }
+
+
+        // Calcular totales
+        const totalSinComision =
+            producto.precio * cantidad;
+
+        const comision =
+            totalSinComision * 0.10;
+
+        const totalConComision =
+            totalSinComision + comision;
+
+
+        // Obtener imagen
+        let imagenProducto = '';
+
+        if (producto.imagenes &&
+            producto.imagenes.length > 0) {
+
+            const imagenPrincipal =
+                producto.imagenes.find(
+                    imagen => imagen.imgPrincipal === true
+                );
+
+
+            if (imagenPrincipal) {
+
+                imagenProducto =
+                    imagenPrincipal.url;
+
+            } else {
+
+                imagenProducto =
+                    producto.imagenes[0].url;
+
+            }
+
+        }
+
+
+        // Obtener categoria
+        let categoriaProducto = '';
+
+        if (producto.categoria) {
+
+            categoriaProducto =
+                producto.categoria.nombre_categoria;
+
+        }
+
+
+        // Crear pedido
+        const pedido = new Pedidos({
+
+            comprador: idComprador,
+
+            vendedor: producto.usuario,
+
+            producto: producto._id,
+
+            cantidad: cantidad,
+
+            total_sin_comision:
+                totalSinComision,
+
+            comision: comision,
+
+            total_con_comision:
+                totalConComision,
+
+            snapshot: {
+
+                nombre_producto:
+                    producto.nombre_produ,
+
+                descripcion_producto:
+                    producto.descripcion,
+
+                precio_producto:
+                    producto.precio,
+
+                categoria:
+                    categoriaProducto,
+
+                imagen:
+                    imagenProducto
+
+            },
+
+            estado: true,
+
+            estado_pago: 'Pendiente'
+
+        });
+
+
+        await pedido.save();
+
+
+        // Restar stock
+        producto.stock =
+            producto.stock - cantidad;
+
+
+        // Si se termina el stock
+        if (producto.stock === 0) {
+
+            producto.disponibilidad = false;
+
+        }
+
+
+        await producto.save();
+
+
+        return pedido;
+
+
+    } catch (error) {
+
+        console.log(
+            "ERROR AL REALIZAR COMPRA:",
+            error
+        );
+
+
+        if (error.status) {
+            throw error;
+        }
+
+
+        if (error.name === 'CastError') {
+
+            const err =
+                new Error("El ID no es valido");
+
+            err.status = 400;
+
+            throw err;
+
+        }
+
+
+        if (error.name === 'ValidationError') {
+
+            const err =
+                new Error("Los datos del pedido no son validos");
+
+            err.status = 400;
+
+            throw err;
+
+        }
+
+
+        const err =
+            new Error("Error interno del servidor");
+
+        err.status = 500;
+
+        throw err;
+
+    }
+
+}
 }
 
 module.exports = ProductoMiddleware;

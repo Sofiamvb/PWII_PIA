@@ -93,56 +93,89 @@ exports.eliminarPedido = async (req, res, next) => {
 //MOSTRAR LAS VENTAS DE USURIO
     exports.misVentas = async (req, res, next) => {
 
-        try {
+    try {
 
-            const ventas = await Pedidos.find({
-                vendedor: req.params.idUsuario,
-                estado_entrega: {
-                    $ne: 'Cancelado'
-                }
-            })
-            .populate('producto', 'nombre_produ imagenes condicion punto_encuentro')
-            .populate('comprador', 'name apellidoP apellidoM')
-            .populate('punto_encuentro', 'lugar zona')
-            .sort({
-                fecha_pedido: -1
-            });
+        const ventas = await Pedidos.find({
+            vendedor: req.params.idUsuario,
+            estado_entrega: {
+                $ne: 'Cancelado'
+            }
+        })
 
-            res.json({
+        .populate({
+            path: 'producto',
+            select: 'nombre_produ imagenes condicion precio punto_encuentro',
+
+            populate: {
+                path: 'punto_encuentro',
+                select: 'lugar zona descripcionZona horario url_ubicacion'
+            }
+        })
+
+        .populate(
+            'comprador',
+            'name apellidoP apellidoM'
+        )
+
+        .sort({
+            fecha_pedido: -1
+        });
+
+
+        return res.json({
             mensaje: 'Estas son tus listas de ventas',
-            ventas: ventas});
+            ventas: ventas
+        });
 
-        } catch (error) {
-            console.log(error);
-            next(error);
-        }
+
+    } catch (error) {
+
+        console.log(error);
+
+        return next(error);
     }
+}
 
     //MOSTRAR LAS COMPRAS DE USURIO
-        exports.misCompras = async (req, res, next) => {
+       exports.misCompras = async (req, res, next) => {
 
-        try {
+    try {
 
-            const compras = await Pedidos.find({
-                comprador: req.params.idUsuario,
-                estado_entrega: {
-                    $ne: 'Cancelado'
-                }
-            })  
-            .populate('producto', 'nombre_produ imagenes condicion')
-            .populate('vendedor', 'name apellidoP apellidoM')
-            .populate('punto_encuentro', 'lugar zona')
-            .sort({
-                fecha_pedido: -1
-            });
+        const compras = await Pedidos.find({
+            comprador: req.params.idUsuario
+        })
 
-            res.json({
-                mensaje: 'Estas son tus listas de compras',
-                compras: compras
-            });
+        .populate({
+            path: 'producto',
+            select: 'nombre_produ imagenes condicion precio punto_encuentro',
 
-        } catch (error) {
-            console.log(error);
-            next(error);
-        }
+            populate: {
+                path: 'punto_encuentro',
+                select: 'lugar zona descripcionZona horario url_ubicacion'
+            }
+        })
+
+        .populate(
+            'vendedor',
+            'name apellidoP apellidoM'
+        )
+
+        .sort({
+            fecha_pedido: -1
+        });
+
+
+        return res.json({
+            mensaje: 'Estas son tus listas de compras',
+            compras: compras
+        });
+
+
+    } catch (error) {
+
+        console.log(error);
+
+        return next(error);
     }
+
+}

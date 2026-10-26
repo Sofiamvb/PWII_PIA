@@ -5,58 +5,91 @@ const ProductoMiddleware = require('../middlewares/productoMiddleware');
 const productoMiddleware = new ProductoMiddleware();
 
 const multer = require('multer');
-const shortid = require('shortid');
+const configuracionMulter = require('../utils/configMulter');
 
-const configuracionMulter = {
-    storage: fileStorage = multer.diskStorage({
-        destination: (req, file, cb) => {
-            cb(null, __dirname + '../../uploads/');
-        },
-        filename: (req, file, cb) => {
-            // Genera un nombre único usando shortid y le concatena la extensión original
-            const extension = file.mimetype.split('/')[1];
-            cb(null, `${shortid.generate()}.${extension}`);
-        }
-    }),
-    fileFilter(req, file, cb) {
-        if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-            cb(null, true);
-        } else {
-            cb(new Error('Formato no valido'));
-        }
-    },
-
-
-}
 //pasar la configuracion y el campo
-const upload = multer(configuracionMulter).single('imagen');
+//const upload = multer(configuracionMulter).single('archivo');
+const upload = multer(configuracionMulter).array('imagenes', 5);
 
 //Subir un archivo 
-exports.subirArchivo = async (req, res, next) => {
-    upload(req, res, function (error) {
-        if (error) {
-            res.json({ mensaje: error })
-        }
-        return next();
-    })
-}
+exports.subirArchivo = (req, res, next) => {
 
+    upload(req, res, (error) => {
+
+        if (error) {
+
+            return res.status(400).json({
+                mensaje: error.message
+            });
+
+            //PONER MENSAJE DE ERROR SI EL ARCHIVO SE PASA DE 5 FOTOS
+        }
+
+
+        console.log(req.files);
+
+
+        if (!req.files || req.files.length === 0) {
+
+            return res.status(400).json({
+                mensaje: 'Debes seleccionar al menos un archivo'
+            });
+
+        }
+
+
+        next();
+
+    });
+
+}
 //nuevos productos
+// NUEVO PRODUCTO
 exports.nuevoProducto = async (req, res, next) => {
 
-    const producto = new productos(req.body);
-
     try {
-        //se asigna
-        if (req.file.filename) {
-            producto.imagen = req.file.filename
+
+        const datos = req.body;
+
+        if (req.files && req.files.length > 0) {
+
+            datos.imagenes = [];
+
+            req.files.forEach((imagen, index) => {
+
+                datos.imagenes.push({
+                    url: imagen.filename,
+                    imgPrincipal: index === 0
+                });
+
+            });
+
         }
-        //se guarda
-        await producto.save();
-        res.json({ mensaje: 'Se ha agregado un nuevo producto' })
+
+        datos.status_aprobado = null;
+        datos.disponibilidad = true;
+
+        const producto = await productoMiddleware.nuevoProducto(datos);
+
+        return res.json({
+            mensaje: 'Se ha agregado un nuevo producto',
+            producto: producto
+        });
+
     } catch (error) {
         console.log(error);
-        next();
+       if (error.status === 400) {
+            return res.status(400).json({
+                mensaje: error.message
+            });
+        }
+        if (error.status === 500) {
+            return res.status(500).json({
+                mensaje: "Internal server error"
+            });
+        }
+
+        next(error);
     }
 
 }
@@ -301,49 +334,25 @@ exports.eliminarProducto = async (req, res, next) => {
 
     try {
 
-        const {
-            usuario_reporte,
-            usuario_reportado,
-            tipo_de_reporte,
-            motivo,
-            descripcionReporte
-        } = req.body;
+        await usersMiddleware.reportarProducto(req.body, req.params.idProducto);
 
-
-        if (!usuario_reporte ||
-            !usuario_reportado ||
-            !tipo_de_reporte ||
-            !motivo ||
-            !descripcionReporte) {
-
-            return res.status(400).json({
-                mensaje: 'No puedes dejar campos vacios'
-            });
-
-        }
-
-
-        const reporte = new Reportes({
-
-            usuario_reporte: usuario_reporte,
-            usuario_reportado: usuario_reportado,
-            tipo_de_reporte: tipo_de_reporte,
-            motivo: motivo,
-            descripcionReporte: descripcionReporte,
-            estadoReporte: 'pendiente'
-        });
-
-        await reporte.save();
         res.json({
-            mensaje: 'Reporte enviado correctamente',
-            reporte: reporte
+            mensaje: 'Se agregó un nuevo reporte'
         });
 
     } catch (error) {
+        if (error.status === 400) {
+            return res.status(401).json({
+                mensaje: error.message
+            });
+        }
+        if (error.status === 500) {
+            return res.status(500).json({
+                mensaje: "Internal server error"
+            });
+        }
 
-        console.log(error);
         next(error);
-
     }
 
 }
@@ -571,3 +580,49 @@ exports.eliminarProducto = async (req, res, next) => {
                 next(error);
             }
         }
+
+        exports.comprarProducto = async (req, res, next) => {
+
+    try {
+
+        const pedido =
+            await productoMiddleware.comprarProducto(
+
+                req.params.idProducto,
+
+                req.params.idComprador,
+
+                req.body.cantidad
+
+            );
+
+
+        return res.json({
+
+            mensaje:
+                'Compra realizada correctamente',
+
+            pedido: pedido
+
+        });
+
+
+    } catch (error) {
+
+
+        if (error.status) {
+
+            return res.status(error.status).json({
+
+                mensaje: error.message
+
+            });
+
+        }
+
+
+        return next(error);
+
+    }
+
+}

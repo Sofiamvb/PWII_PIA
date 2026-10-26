@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/usersController');
 const productosController = require('../controllers/productosController');
 const pedidosController = require('../controllers/pedidosController');
+const adminController = require('../controllers/adminController');
 
 
 module.exports = function () {
@@ -41,9 +42,7 @@ module.exports = function () {
 
     /*PRODUCTOS*/
 
-    //Nuevo producto 
-    router.post('/productos', productosController.subirArchivo,
-        productosController.nuevoProducto);
+    
 
     //Mostrar todos los productos
     router.get('/productos', productosController.mostrarProductos);
@@ -55,8 +54,7 @@ module.exports = function () {
     router.put('/productos/:idProducto', productosController.subirArchivo,
         productosController.actualizarProducto);
 
-    //Eliminar un producto
-    router.delete('/productos/:idProducto', productosController.eliminarProducto);
+    
  //ALEX 
     //Mostrar producto por ID
     router.get('/productos/:idProducto', productosController.mostrarProducto);
@@ -88,12 +86,8 @@ module.exports = function () {
     // Mostrar los reportes realizados por un usuario
     router.get('/productos/reportes/usuario/:idUsuario', productosController.misReportes);
 
-    // Mostrar puntos de encuentro disponibles
-    router.get('/productos/puntos/mostrar', productosController.mostrarPuntosEncuentro);
-
-    // Elegir punto de encuentro para un producto
-    router.put('/productos/:idProducto/punto/:idPunto', productosController.elegirPuntoEncuentro);
-
+    
+   
     // Mostrar datos de una compra
     router.get('/pedidos/:idPedido', productosController.mostrarPedido);
 
@@ -106,22 +100,8 @@ module.exports = function () {
     //mis compras
     router.get('/pedidos/compras/:idUsuario', pedidosController.misCompras);
 
+    router.post('/pedidos/comprar/:idProducto/:idComprador',productosController.comprarProducto);
 
-    /*PEDIDOS*/
-    //Agregar nuevos pedidos
-    router.post('/pedidos', pedidosController.nuevoPedido);
-
-    //Mostrar todos los pedidos
-    router.get('/pedidos', pedidosController.mostrarPedidos);
-
-    //Mostrar pedido por ID
-    router.get('/pedidos/:idPedido', pedidosController.mostrarPedido);
-
-    //Actualizar pedidos por ID 
-    router.put('/pedidos/:idPedido', pedidosController.actualizarPedido);
-
-    //Eliminar pedidos por ID
-    router.delete('/pedidos/:idPedido', pedidosController.eliminarPedido);
 
 
 
