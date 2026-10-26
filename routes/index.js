@@ -76,5 +76,99 @@ module.exports = function () {
 
 
 
+
+
+        //-------------------ADMINISTRADOR -------------------
+        
+        
+            //USUARIOS
+            
+            //Mostrar usuarios
+            router.get('/admin/usuarios',
+            adminController.mostrarUsuarios);
+        
+            //Ssupender Usuario
+            router.put('/admin/usuarios/:idUsuario/suspender',
+            adminController.suspenderUsuario);
+        
+                //CATEGORIAS
+        
+            //Mostrar categorias
+            router.get('/admin/categorias/mostrar',
+            adminController.mostrarCategorias);
+        
+            //Agregar categoria
+            router.post('/admin/categorias',
+            adminController.nuevaCategoria);
+        
+            //Editar categoria
+            router.put('/admin/categorias/:idCategoria',
+            adminController.editarCategoria);
+        
+            //Eliminar categoria
+            router.delete('/admin/categorias/:idCategoria',
+            adminController.eliminarCategoria);
+        
+        
+            //PRODUCTOS
+        
+            //Mostrar productos
+            router.get('/admin/productos',
+            adminController.mostrarProductos);
+        
+            //Agregar producto
+            router.put('/admin/productos/:idProducto/aprobar',
+            adminController.aprobarProducto);
+        
+            //Rechazar producto
+            router.put('/admin/productos/:idProducto/rechazar',
+            adminController.rechazarProducto);
+        
+            //Cambiar disponibilidad de producto
+            router.put('/admin/productos/:idProducto/disponibilidad',
+            adminController.cambiarDisponibilidad);
+        
+            //PUNTOS DE COMPRA
+        
+            //Mostrar puntos de compra
+            router.get('/admin/puntos',
+            adminController.mostrarPuntos);
+        
+            //Agregar punto de compra
+            router.post('/admin/puntos',
+            adminController.nuevoPunto);
+        
+            //Desactivar punto de compra
+            router.put('/admin/puntos/:idPunto/desactivar',
+            adminController.desactivarPunto);   
+        
+            //Eliminar punto de compra
+            router.delete('/admin/puntos/:idPunto',
+            adminController.eliminarPunto);
+        
+            //TRANSACCIONES
+        
+            //Mostrar transacciones
+            router.get('/admin/transacciones',
+            adminController.mostrarTransacciones);
+        
+            //REPORTES
+        
+            //Mostrar reportes
+            router.get('/admin/reportes',
+            adminController.mostrarReportes);
+        
+            //Ver Reporte
+            router.get('/admin/reportes/:idReporte',
+            adminController.mostrarReporte);
+        
+            //Rechazar Reporte
+            router.put('/admin/reportes/:idReporte/rechazar',
+            adminController.rechazarReporte);
+        
+            //Eliminar Reporte
+            router.delete('/admin/reportes/:idReporte',
+            adminController.eliminarReporte);
+
     return router;
 }
