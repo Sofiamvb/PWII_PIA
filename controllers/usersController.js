@@ -4,6 +4,34 @@ const UsersMiddleware = require('../middlewares/userMiddleware');
 
 const usersMiddleware = new UsersMiddleware();
 
+const configuracionMulter = require('../utils/configMulter.js');
+
+const multer = require('multer');
+
+
+//pasar la configuracion y el campo
+const upload = multer(configuracionMulter).single('archivo');
+
+//Subir un archivo 
+exports.subirArchivo = (req, res, next) => {
+    upload(req, res, (error) => {
+        if (error) {
+            console.log(error)
+            return res.status(400).json({
+                mensaje: error.message
+            });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({
+                mensaje: 'Debes seleccionar un archivo'
+            });
+        }
+
+        next();
+    });
+}
+
 //agregar un nuvo user
 
 exports.nuevoUser = async (req, res, next) => {
@@ -64,7 +92,7 @@ exports.login = async (req, res, next) => {
 
 //muestra todos los users
 
-exports.mostrarUsers = async (req, res, next) => {
+/*exports.mostrarUsers = async (req, res, next) => {
 
     try {
 
@@ -75,30 +103,33 @@ exports.mostrarUsers = async (req, res, next) => {
         console.log(error);
         next();
     }
-}
+}*/
 
 //mostrar user por ID
 
-/*exports.mostrarUser = async (req, res, next) => {
+exports.mostrarUser = async (req, res, next) => {
 
     try {
 
-        const user = await Users.findById(req.params.idUser);
-
-        if (!user) {
-
-            res.json({ mensaje: 'El usuario que busca no existe' });
-            next();
-        }
-
-        //mostrar cliente
-        res.json(user);
+        const infoUser = await usersMiddleware.mostrarInfoUser(req);
+        console.log(infoUser);
+        res.json(infoUser);
 
     } catch (error) {
-        console.log(error);
-        next();
+        if (error.status === 400) {
+            return res.status(400).json({
+                mensaje: error.message
+            });
+        }
+        if (error.status === 500) {
+            return res.status(500).json({
+                mensaje: "Internal server error"
+            });
+        }
+
+        next(error);
     }
-}*/
+}
 
 //actualizar usuario por ID
 
@@ -160,7 +191,53 @@ exports.actualizarPassword = async (req, res, next) => {
 exports.verificacion = async (req, res, next) => {
     try {
 
-        await usersMiddleware.editarPassword(req);
+        await usersMiddleware.verificacionUser(req);
+
+        res.json({
+            mensaje: 'Se ha enviado la información'
+        });
+
+    } catch (error) {
+
+        if (error.status === 400) {
+            return res.status(400).json({
+                mensaje: error.message
+            });
+        }
+        if (error.status === 500) {
+            console.log(error)
+            return res.status(500).json({
+                mensaje: "Internal server error"
+            });
+        }
+
+        next(error);
+    }
+}
+
+//SE MUESTRAN LOS USUARIOS CON SU VERIFICACION EN PENDIENTE AL ADM
+exports.mostrarVerificaciones = async (req, res, next) => {
+    try {
+
+        const usersPendientes = await usersMiddleware.mostrarVerificacionesPendientes();
+        console.log(usersPendientes);
+        res.json(usersPendientes);
+
+    } catch (error) {
+        if (error.status === 500) {
+            return res.status(500).json({
+                mensaje: error.message
+            });
+        }
+
+        next(error);
+    }
+}
+
+exports.verificacionAdmin = async (req, res, next) => {
+    try {
+
+        await usersMiddleware.actualizarVerificacionUser(req);
 
         res.json({
             mensaje: 'Se actualizo la información'

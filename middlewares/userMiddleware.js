@@ -187,35 +187,166 @@ class UsersMiddleware {
         }
     }
 
-    /*async verificacionUser(data) {
+    async verificacionUser(data) {
 
-        const multer = require('multer');
-        const shortid = require('shortid');
+        const { documento } = data.body;
+        console.log(documento)
+        if (!documento) {
+            const err = new Error('Seleccione un tipo de documento');
+            err.status = 400;
+            throw err;
+        }
 
-        const configuracionMulter = {
-            storage: fileStorage = multer.diskStorage({
-                destination: (req, file, cb) => {
-                    cb(null, __dirname + '../../uploads/');
-                },
-                filename: (req, file, cb) => {
-                    // Genera un nombre único usando shortid y le concatena la extensión original
-                    const extension = file.mimetype.split('/')[1];
-                    cb(null, `${shortid.generate()}.${extension}`);
-                }
-            }),
-            fileFilter(req, file, cb) {
-                if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
-                    cb(null, true);
-                } else {
-                    cb(new Error('Formato no valido'));
-                }
-            },
-
+        const data_actualizada = {
+            "verificacion": {
+                estado: 'pendiente',
+                tipoDocumento: documento.trim().toLowerCase(),
+                documentoUrl: data.file.filename
+            }
 
         }
-        //pasar la configuracion y el campo
-        const upload = multer(configuracionMulter).single('imagen');
-    }*/
+
+        try {
+            if (documento.trim().toLowerCase() === "credencial" ||
+                documento.trim().toLowerCase() === "constancia" ||
+                documento.trim().toLowerCase() === "otro") {
+
+                console.log('Entró al if de tipos de documento');
+
+                const verificacion_actualizada = await Users.findOneAndUpdate({ _id: data.params.idUser },
+                    data_actualizada, {
+                    returnDocument: 'after'
+                });
+
+
+                if (!verificacion_actualizada) {
+                    console.log(verificacion_actualizada)
+                    const err = new Error('No se encontró el usuario o no se pudo actualizar');
+                    err.status = 404;
+                    throw err;
+                }
+                return verificacion_actualizada;
+
+            }
+
+            console.log('No se encontró el usuario o no se pudo actualizar')
+
+        } catch (error) {
+            if (error.status) {
+                throw error;
+            }
+            const err = new Error("Error interno del servidor");
+            err.status = 500;
+            throw err;
+        }
+
+
+    }
+
+    //FUNCION DE MIDDLEWARE DE ADMIN PARA MOSTRAR USUARIOS CON EL ESTADO DE LA DOCUMENTACION PENDIENTE
+    async mostrarVerificacionesPendientes() {
+
+        try {
+
+            const users_encontrados = await Users.find({ "verificacion.estado": "pendiente" })
+            console.log(users_encontrados)
+            if (!users_encontrados) {
+                return null;
+            }
+            return users_encontrados;
+
+        } catch (error) {
+            console.log(error);
+            next();
+        }
+
+    }
+
+    //FUNCION PARA ACTUUALIZAR EL ESTADO DE LA VERIFICACION DE DOCUMENTACION, DE PENDIENTE A APROBADO O RECHAZADO
+    async actualizarVerificacionUser(data) {
+
+        const { estado } = data.body;
+
+
+        try {
+
+            const user = await Users.findById(data.params.idUser);
+
+            if (!user) {
+
+                const err = new Error('El usuario que busca no existe');
+                err.status = 400;
+                throw err;
+            }
+
+            if (user.verificacion.estado === 'sin enviar' || user.verificacion.estado === 'rechazado') {
+
+                const err = new Error('Se debe completar la verificacion');
+                err.status = 400;
+                throw err;
+
+            }
+
+        } catch (error) {
+            if (error.status) {
+                throw error;
+            }
+            const err = new Error("Error interno del servidor");
+            err.status = 500;
+            throw err;
+        }
+
+        console.log('Antes de actualizar')
+
+
+        try {
+            const verificacion_actualizada = await Users.findOneAndUpdate({ _id: data.params.idUser },
+                {
+                    $set: {
+                        'verificacion.estado': estado
+                    }
+                }, {
+                returnDocument: true
+            });
+            return verificacion_actualizada;
+
+        } catch (error) {
+
+            if (error.status) {
+                throw error;
+            }
+            const err = new Error("Error interno del servidor");
+            err.status = 500;
+            throw err;
+        }
+
+
+    }
+
+    //Mostrar info de los usuarios por id
+    async mostrarInfoUser(data) {
+
+        try {
+            const user = await Users.findById(data.params.idUser);
+
+            if (!user) {
+                const err = new Error('El usuario que busca no existe');
+                err.status = 400;
+                throw err;
+            }
+
+            return user;
+        } catch (error) {
+            if (error.status) {
+                throw error;
+            }
+            const err = new Error("Error interno del servidor");
+            err.status = 500;
+            throw err;
+        }
+
+    }
+
 
 }
 
