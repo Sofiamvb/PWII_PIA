@@ -88,3 +88,61 @@ exports.eliminarPedido = async (req, res, next) => {
         next();
     }
 }
+
+
+//MOSTRAR LAS VENTAS DE USURIO
+    exports.misVentas = async (req, res, next) => {
+
+        try {
+
+            const ventas = await Pedidos.find({
+                vendedor: req.params.idUsuario,
+                estado_entrega: {
+                    $ne: 'Cancelado'
+                }
+            })
+            .populate('producto', 'nombre_produ imagenes condicion punto_encuentro')
+            .populate('comprador', 'name apellidoP apellidoM')
+            .populate('punto_encuentro', 'lugar zona')
+            .sort({
+                fecha_pedido: -1
+            });
+
+            res.json({
+            mensaje: 'Estas son tus listas de ventas',
+            ventas: ventas});
+
+        } catch (error) {
+            console.log(error);
+            next(error);
+        }
+    }
+
+    //MOSTRAR LAS COMPRAS DE USURIO
+        exports.misCompras = async (req, res, next) => {
+
+        try {
+
+            const compras = await Pedidos.find({
+                comprador: req.params.idUsuario,
+                estado_entrega: {
+                    $ne: 'Cancelado'
+                }
+            })  
+            .populate('producto', 'nombre_produ imagenes condicion')
+            .populate('vendedor', 'name apellidoP apellidoM')
+            .populate('punto_encuentro', 'lugar zona')
+            .sort({
+                fecha_pedido: -1
+            });
+
+            res.json({
+                mensaje: 'Estas son tus listas de compras',
+                compras: compras
+            });
+
+        } catch (error) {
+            console.log(error);
+            next(error);
+        }
+    }
