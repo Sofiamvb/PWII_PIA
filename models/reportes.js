@@ -19,6 +19,7 @@ const reportesSchema = new Schema({
         ref: 'users'
     },
     tipo_de_reporte:{
+        type: String,
         enum:['producto sospechoso', 'información incorrecta', 'publicación inapropiada', 'usuario, fraude', 'problema en transacción']
     },
     motivo: {
@@ -30,6 +31,7 @@ const reportesSchema = new Schema({
         trim: true
     },
     estadoReporte: {
+        type: String,
         enum:['pendiente', 'revision', 'resuelto', 'cerrado'],
         default: 'pendiente'
     },

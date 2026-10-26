@@ -57,6 +57,55 @@ module.exports = function () {
 
     //Eliminar un producto
     router.delete('/productos/:idProducto', productosController.eliminarProducto);
+ //ALEX 
+    //Mostrar producto por ID
+    router.get('/productos/:idProducto', productosController.mostrarProducto);
+
+    //Actualizar producto por ID
+    router.put('/productos/:idProducto',productosController.subirArchivo, productosController.actualizarProducto);
+
+    //Eliminar en editar un producto por ID
+    router.delete('/productos/:idProducto', productosController.eliminarProducto);  
+
+    //publicar nuevo producto
+    router.post('/productos', productosController.subirArchivo,productosController.nuevoProducto);
+
+    //Mostrar todos los productos
+    router.get('/productos/usuario/:idUsuario', productosController.misPublicaciones);
+
+
+    // Mostrar puntos de encuentro disponibles
+    router.get('/productos/puntos/mostrar', productosController.mostrarPuntosEncuentro);
+
+
+    // Elegir punto de encuentro para un producto
+    router.put('/productos/:idProducto/punto/:idPunto', productosController.elegirPuntoEncuentro);
+
+
+    // Crear reporte de un producto
+    router.post('/productos/:idProducto/reportar', productosController.reportarProducto);
+
+    // Mostrar los reportes realizados por un usuario
+    router.get('/productos/reportes/usuario/:idUsuario', productosController.misReportes);
+
+    // Mostrar puntos de encuentro disponibles
+    router.get('/productos/puntos/mostrar', productosController.mostrarPuntosEncuentro);
+
+    // Elegir punto de encuentro para un producto
+    router.put('/productos/:idProducto/punto/:idPunto', productosController.elegirPuntoEncuentro);
+
+    // Mostrar datos de una compra
+    router.get('/pedidos/:idPedido', productosController.mostrarPedido);
+
+    // Cancelar compra
+    router.put('/pedidos/:idPedido/cancelar', productosController.cancelarPedido);
+
+    //mis ventas
+    router.get('/pedidos/ventas/:idUsuario', pedidosController.misVentas);
+
+    //mis compras
+    router.get('/pedidos/compras/:idUsuario', pedidosController.misCompras);
+
 
     /*PEDIDOS*/
     //Agregar nuevos pedidos
