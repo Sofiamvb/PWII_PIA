@@ -13,10 +13,25 @@ const snapshotProducto = new Schema({
     precio_producto: {
         type: Number
     },
+    zona: {
+        type: String
+    },
+    lugar: {
+        type: String
+    },
+    condicion: {
+        type: String
+    },
     categoria: {
         type: String
     },
     imagen: {
+        type: String
+    },
+    stock: {
+        type: String
+    },
+    vendedor: {
         type: String
     }
 }, {
@@ -35,6 +50,18 @@ const pedidosSchema = new Schema({
     producto: {
         type: Schema.ObjectId,
         ref: 'productos'
+    },
+    titular_tarjeta: {
+        type: String
+    },
+    numero_tarjeta: {
+        type: String
+    },
+    vencimiento_tarjeta: {
+        type: String
+    },
+    cvv_tarjeta: {
+        type: String
     },
     cantidad: {
         type: Number,

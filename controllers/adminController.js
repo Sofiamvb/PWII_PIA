@@ -27,7 +27,6 @@ exports.mostrarUsuarios = async (req, res, next) => {
 
 }
 
-
 exports.suspenderUsuario = async (req, res, next) => {
 
     try {

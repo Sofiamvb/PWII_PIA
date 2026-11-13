@@ -3,14 +3,12 @@ const productos = require('../models/productos');
 const Reportes = require('../models/reportes');
 const Pedidos = require('../models/pedidos');
 const PuntoEncuentro = require('../models/puntoEncuentro');
-const CategoriasMiddleware = require('../middlewares/categoriasMiddleware')
+const CategoriasMiddleware = require('./categoriasMiddleware')
 
 const categoriasMiddleware = new CategoriasMiddleware();
 
 
 class ProductoMiddleware {
-
-
 
     async traerProductos(data) {
         try {
@@ -70,20 +68,27 @@ class ProductoMiddleware {
 
     //MOSTRAR PRODUCTO POR ID
     async mostrarProductoPorId(idProducto) {
+
+        console.log(idProducto)
+
         try {
             const producto = await productos
                 .findById(idProducto)
                 .populate('usuario', 'name apellidoP apellidoM institucion carrera reputacion imagen')
                 .populate('categoria', 'nombre_categoria')
                 .populate('punto_encuentro', 'lugar zona descripcionZona horario url_ubicacion');
-
+           
             if (!producto) {
                 const error = new Error("El producto no existe");
                 error.status = 404;
                 throw error;
 
             }
+            
+            
             return producto;
+
+           
 
         } catch (error) {
 
@@ -107,15 +112,18 @@ class ProductoMiddleware {
     //EDITAR PRODUCTO POR ID
     async editarProducto(idProducto, data) {
 
+        console.log(data.usuario)
+
         try {
-            const producto = await productos.findByIdAndUpdate(
-                idProducto,
+            const producto = await productos.findOneAndUpdate(
+                { _id: idProducto },
                 data,
                 {
-                    new: true,
+                    returnDocument: 'after',
                     runValidators: true
                 }
             );
+            console.log(producto)
 
             if (!producto) {
                 const error = new Error("El producto no existe");
@@ -124,151 +132,152 @@ class ProductoMiddleware {
 
             }
 
+            console.log(idProducto)
+
             return producto;
 
         } catch (error) {
 
-            if (error.status) {
-                throw error;
-            }
 
-            if (error.name === 'CastError') {
+                if (error.status) {
+                    throw error;
+                }
 
-                const err = new Error("El ID del producto no es valido");
-                err.status = 400;
+                if (error.name === 'CastError') {
+
+                    const err = new Error("El ID del producto no es valido");
+                    err.status = 400;
+                    throw err;
+
+                }
+
+                if (error.name === 'ValidationError') {
+
+                    const err = new Error("Los datos del producto no son validos");
+                    err.status = 400;
+                    throw err;
+
+                }
+
+                const err = new Error("Error interno del servidor");
+                err.status = 500;
                 throw err;
-
             }
-
-            if (error.name === 'ValidationError') {
-
-                const err = new Error("Los datos del producto no son validos");
-                err.status = 400;
-                throw err;
-
-            }
-
-            const err = new Error("Error interno del servidor");
-            err.status = 500;
-            throw err;
         }
-    }
-    
+
     //ELIMINAR PRODUCTO POR ID
     async eliminarProducto(idProducto) {
 
-        try {
+            try {
 
-            const producto = await productos.findByIdAndDelete(
-                idProducto
-            );
+                const producto = await productos.findByIdAndDelete(
+                    idProducto
+                );
 
-            if (!producto) {
-                const error = new Error("El producto no existe");
-                error.status = 404;
-                throw error;
-            }
-            return producto;
+                if (!producto) {
+                    const error = new Error("El producto no existe");
+                    error.status = 404;
+                    throw error;
+                }
+                return producto;
 
-        } catch (error) {
-            if (error.status) {
-                throw error;
-            }
+            } catch (error) {
+                if (error.status) {
+                    throw error;
+                }
 
-            if (error.name === 'CastError') {
-                const err = new Error("El ID del producto no es valido");
-                err.status = 400;
+                if (error.name === 'CastError') {
+                    const err = new Error("El ID del producto no es valido");
+                    err.status = 400;
+                    throw err;
+                }
+
+                const err = new Error("Error interno del servidor");
+                err.status = 500;
                 throw err;
             }
 
-            const err = new Error("Error interno del servidor");
-            err.status = 500;
-            throw err;
         }
-
-    }
-
 
     //PUBLICAR NUEVO PRODUCTO
     async nuevoProducto(data) {
 
-        try {
+            try {
 
-            // VALIDAR USUARIO
-            if (!data.usuario) {
-                const error = new Error("El usuario es obligatorio");
-                error.status = 400;
-                throw error;
+                // VALIDAR USUARIO
+                if (!data.usuario) {
+                    const error = new Error("El usuario es obligatorio");
+                    error.status = 400;
+                    throw error;
+                }
+
+
+                if (!data.nombre_produ || data.nombre_produ.trim() === '') {
+                    const error = new Error("El nombre del producto es obligatorio");
+                    error.status = 400;
+                    throw error;
+                }
+
+
+                if (!data.descripcion || data.descripcion.trim() === '') {
+                    const error = new Error("La descripcion es obligatoria");
+                    error.status = 400;
+                    throw error;
+                }
+
+
+                if (!data.precio || Number(data.precio) <= 0) {
+                    const error = new Error("El precio debe ser mayor a 0");
+                    error.status = 400;
+                    throw error;
+                }
+
+                if (!data.categoria) {
+                    const error = new Error("La categoria es obligatoria");
+                    error.status = 400;
+                    throw error;
+                }
+
+
+                if (!data.condicion) {
+                    const error = new Error("La condicion es obligatoria");
+                    error.status = 400;
+                    throw error;
+                }
+
+
+                if (!data.punto_encuentro) {
+                    const error = new Error("El punto de encuentro es obligatorio");
+                    error.status = 400;
+                    throw error;
+                }
+
+
+                if (!data.stock || Number(data.stock) <= 0) {
+                    const error = new Error("El stock debe ser mayor a 0");
+                    error.status = 400;
+                    throw error;
+                }
+
+                console.log(data)
+                const producto = new productos(data);
+                producto.usuario = data.usuario;
+                await producto.save();
+
+            } catch (error) {
+                console.log(error);
+                if (error.status) {
+                    throw error;
+                }
+
+                const err = new Error("Error interno del servidor");
+                err.status = 500;
+                throw err;
             }
-
-
-            if (!data.nombre_produ || data.nombre_produ.trim() === '') {
-                const error = new Error("El nombre del producto es obligatorio");
-                error.status = 400;
-                throw error;
-            }
-
-
-            if (!data.descripcion || data.descripcion.trim() === '') {
-                const error = new Error("La descripcion es obligatoria");
-                error.status = 400;
-                throw error;
-            }
-
-
-            if (!data.precio || Number(data.precio) <= 0) {
-                const error = new Error("El precio debe ser mayor a 0");
-                error.status = 400;
-                throw error;
-            }
-
-
-            if (!data.categoria) {
-                const error = new Error("La categoria es obligatoria");
-                error.status = 400;
-                throw error;
-            }
-
-
-            if (!data.condicion) {
-                const error = new Error("La condicion es obligatoria");
-                error.status = 400;
-                throw error;
-            }
-
-
-            if (!data.punto_encuentro) {
-                const error = new Error("El punto de encuentro es obligatorio");
-                error.status = 400;
-                throw error;
-            }
-
-
-            if (!data.stock || Number(data.stock) <= 0) {
-                const error = new Error("El stock debe ser mayor a 0");
-                error.status = 400;
-                throw error;
-            }
-
-
-
-            const producto = new productos(data);
-            producto.usuario = data.usuario;
-            await producto.save();
-        } catch (error) {
-            console.log(error);
-            if (error.status) {
-                throw error;
-            }
-
-            const err = new Error("Error interno del servidor");
-            err.status = 500;
-            throw err;
         }
-    }
 
-        //MOSTRAR PUBLICACIONES
-        async mostrarPublicacionesUsuario(idUsuario, categoria) {
+    //MOSTRAR PUBLICACIONES
+    async mostrarPublicacionesUsuario(idUsuario, categoria) {
 
             try {
                 let filtro = {
@@ -299,15 +308,14 @@ class ProductoMiddleware {
             }
         }
 
+    // CREAR REPORTE DE UN PRODUCTO
+    async reportarProducto(idProducto, data) {
+            console.log(data.usuario_reporte);
 
-        // CREAR REPORTE DE UN PRODUCTO
-            async reportarProducto(idProducto, data) {
-                    console.log(data.usuario_reporte);
-                
 
-                try {
+            try {
 
-                     if (!data) {
+                if (!data) {
 
                     const error = new Error("No puedes dejar campos vacios");
                     error.status = 400;
@@ -316,104 +324,104 @@ class ProductoMiddleware {
 
 
 
-                    if (!data.usuario_reporte ||
-                        !data.tipo_de_reporte ||
-                        !data.motivo ||
-                        !data.descripcionReporte) {
+                if (!data.usuario_reporte ||
+                    !data.tipo_de_reporte ||
+                    !data.motivo ||
+                    !data.descripcionReporte) {
 
-                        const error = new Error("No puedes dejar campos vacios");
-                        error.status = 400;
-                        throw error;
-                    }
-
-
-                    if (data.tipo_de_reporte.trim() === '' ||
-                        data.motivo.trim() === '' ||
-                        data.descripcionReporte.trim() === '') {
-
-                        const error = new Error("No puedes dejar campos vacios");
-                        error.status = 400;
-                        throw error;
-                    }
+                    const error = new Error("No puedes dejar campos vacios");
+                    error.status = 400;
+                    throw error;
+                }
 
 
-                    const producto = await productos.findById(idProducto);
+                if (data.tipo_de_reporte.trim() === '' ||
+                    data.motivo.trim() === '' ||
+                    data.descripcionReporte.trim() === '') {
 
-                    if (!producto) {
-
-                        const error = new Error("El producto no existe");
-                        error.status = 404;
-                        throw error;
-                    }
-
-
-                    const reporte = new Reportes({
-
-                        producto: idProducto,
-
-                        usuario_reporte: data.usuario_reporte,
-
-                        usuario_reportado: producto.usuario,
-
-                        tipo_de_reporte: data.tipo_de_reporte,
-
-                        motivo: data.motivo,
-
-                        descripcionReporte: data.descripcionReporte,
-
-                        estadoReporte: 'pendiente'
-
-                    });
-
-                    await reporte.save();
-
-                    return reporte;
+                    const error = new Error("No puedes dejar campos vacios");
+                    error.status = 400;
+                    throw error;
+                }
 
 
-                } catch (error) {
+                const producto = await productos.findById(idProducto);
 
-                    console.log("ERROR AL CREAR REPORTE:", error);
+                if (!producto) {
 
-
-                    if (error.status) {
-                        throw error;
-                    }
-
-
-                    if (error.name === 'CastError') {
-
-                        const err = new Error("El ID no es valido");
-                        err.status = 400;
-                        throw err;
-
-                    }
+                    const error = new Error("El producto no existe");
+                    error.status = 404;
+                    throw error;
+                }
 
 
-                    if (error.name === 'ValidationError') {
+                const reporte = new Reportes({
 
-                        const err = new Error("Los datos del reporte no son validos");
-                        err.status = 400;
-                        throw err;
+                    producto: idProducto,
 
-                    }
+                    usuario_reporte: data.usuario_reporte,
+
+                    usuario_reportado: producto.usuario,
+
+                    tipo_de_reporte: data.tipo_de_reporte,
+
+                    motivo: data.motivo,
+
+                    descripcionReporte: data.descripcionReporte,
+
+                    estadoReporte: 'pendiente'
+
+                });
+
+                await reporte.save();
+
+                return reporte;
 
 
-                    const err = new Error("Error interno del servidor");
-                    err.status = 500;
+            } catch (error) {
+
+                console.log("ERROR AL CREAR REPORTE:", error);
+
+
+                if (error.status) {
+                    throw error;
+                }
+
+
+                if (error.name === 'CastError') {
+
+                    const err = new Error("El ID no es valido");
+                    err.status = 400;
                     throw err;
 
                 }
 
+
+                if (error.name === 'ValidationError') {
+
+                    const err = new Error("Los datos del reporte no son validos");
+                    err.status = 400;
+                    throw err;
+
+                }
+
+
+                const err = new Error("Error interno del servidor");
+                err.status = 500;
+                throw err;
+
             }
 
-            // MOSTRAR REPORTES DEL USUARIO
-            async mostrarMisReportes(idUsuario) {
+        }
 
-                try {
+    // MOSTRAR REPORTES DEL USUARIO
+    async mostrarMisReportes(idUsuario) {
 
-                    const reportes = await Reportes.find({
-                        usuario_reporte: idUsuario
-                    })
+            try {
+
+                const reportes = await Reportes.find({
+                    usuario_reporte: idUsuario
+                })
                     .populate(
                         'producto',
                         'nombre_produ imagenes descripcion precio'
@@ -423,29 +431,28 @@ class ProductoMiddleware {
                         'name apellidoP usuario'
                     );
 
-                    return reportes;
+                return reportes;
 
-                } catch (error) {
+            } catch (error) {
 
-                    if (error.name === 'CastError') {
+                if (error.name === 'CastError') {
 
-                        const err = new Error("El ID del usuario no es valido");
-                        err.status = 400;
-                        throw err;
-
-                    }
-
-                    const err = new Error("Error interno del servidor");
-                    err.status = 500;
+                    const err = new Error("El ID del usuario no es valido");
+                    err.status = 400;
                     throw err;
 
                 }
 
+                const err = new Error("Error interno del servidor");
+                err.status = 500;
+                throw err;
+
             }
-        
-        
-        //MOSTAR PUNTOS DE ENCUENTRO
-        async mostrarPuntosEncuentro() {
+
+        }
+
+    //MOSTAR PUNTOS DE ENCUENTRO
+    async mostrarPuntosEncuentro() {
 
             try {
 
@@ -464,9 +471,8 @@ class ProductoMiddleware {
 
         }
 
-
-        //SELECCIONAR PUNTO DE ENCUENTRO
-        async elegirPuntoEncuentro(idProducto, idPunto) {
+    //SELECCIONAR PUNTO DE ENCUENTRO
+    async elegirPuntoEncuentro(idProducto, idPunto) {
 
             try {
 
@@ -530,242 +536,8 @@ class ProductoMiddleware {
                 throw err;
             }
         }
-        
-        async comprarProducto(idProducto, idComprador, cantidad) {
-
-         try {
-
-        cantidad = Number(cantidad);
-
-
-        // Validar cantidad
-        if (!cantidad || cantidad <= 0) {
-
-            const error = new Error("La cantidad debe ser mayor a 0");
-            error.status = 400;
-            throw error;
-
-        }
-
-
-        // Buscar producto
-        const producto = await productos.findById(idProducto)
-            .populate('categoria', 'nombre_categoria');
-
-
-        if (!producto) {
-
-            const error = new Error("El producto no existe");
-            error.status = 404;
-            throw error;
-
-        }
-
-
-        // Validar que el producto tenga vendedor
-        if (!producto.usuario) {
-
-            const error = new Error("El producto no tiene un vendedor asociado");
-            error.status = 400;
-            throw error;
-
-        }
-
-
-        // No permitir comprar tu propio producto
-        if (producto.usuario.toString() === idComprador) {
-
-            const error = new Error("No puedes comprar tu propio producto");
-            error.status = 400;
-            throw error;
-
-        }
-
-
-        // Revisar disponibilidad
-        if (producto.disponibilidad === false) {
-
-            const error = new Error("El producto no esta disponible");
-            error.status = 400;
-            throw error;
-
-        }
-
-
-        // Revisar stock
-        if (cantidad > producto.stock) {
-
-            const error = new Error("No hay suficiente stock");
-            error.status = 400;
-            throw error;
-
-        }
-
-
-        // Calcular totales
-        const totalSinComision =
-            producto.precio * cantidad;
-
-        const comision =
-            totalSinComision * 0.10;
-
-        const totalConComision =
-            totalSinComision + comision;
-
-
-        // Obtener imagen
-        let imagenProducto = '';
-
-        if (producto.imagenes &&
-            producto.imagenes.length > 0) {
-
-            const imagenPrincipal =
-                producto.imagenes.find(
-                    imagen => imagen.imgPrincipal === true
-                );
-
-
-            if (imagenPrincipal) {
-
-                imagenProducto =
-                    imagenPrincipal.url;
-
-            } else {
-
-                imagenProducto =
-                    producto.imagenes[0].url;
-
-            }
-
-        }
-
-
-        // Obtener categoria
-        let categoriaProducto = '';
-
-        if (producto.categoria) {
-
-            categoriaProducto =
-                producto.categoria.nombre_categoria;
-
-        }
-
-
-        // Crear pedido
-        const pedido = new Pedidos({
-
-            comprador: idComprador,
-
-            vendedor: producto.usuario,
-
-            producto: producto._id,
-
-            cantidad: cantidad,
-
-            total_sin_comision:
-                totalSinComision,
-
-            comision: comision,
-
-            total_con_comision:
-                totalConComision,
-
-            snapshot: {
-
-                nombre_producto:
-                    producto.nombre_produ,
-
-                descripcion_producto:
-                    producto.descripcion,
-
-                precio_producto:
-                    producto.precio,
-
-                categoria:
-                    categoriaProducto,
-
-                imagen:
-                    imagenProducto
-
-            },
-
-            estado: true,
-
-            estado_pago: 'Pendiente'
-
-        });
-
-
-        await pedido.save();
-
-
-        // Restar stock
-        producto.stock =
-            producto.stock - cantidad;
-
-
-        // Si se termina el stock
-        if (producto.stock === 0) {
-
-            producto.disponibilidad = false;
-
-        }
-
-
-        await producto.save();
-
-
-        return pedido;
-
-
-    } catch (error) {
-
-        console.log(
-            "ERROR AL REALIZAR COMPRA:",
-            error
-        );
-
-
-        if (error.status) {
-            throw error;
-        }
-
-
-        if (error.name === 'CastError') {
-
-            const err =
-                new Error("El ID no es valido");
-
-            err.status = 400;
-
-            throw err;
-
-        }
-
-
-        if (error.name === 'ValidationError') {
-
-            const err =
-                new Error("Los datos del pedido no son validos");
-
-            err.status = 400;
-
-            throw err;
-
-        }
-
-
-        const err =
-            new Error("Error interno del servidor");
-
-        err.status = 500;
-
-        throw err;
 
     }
-
-}
-}
 
 module.exports = ProductoMiddleware;
 

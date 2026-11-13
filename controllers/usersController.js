@@ -1,6 +1,6 @@
 const Users = require('../models/users');
 
-const UsersMiddleware = require('../middlewares/userMiddleware');
+const UsersMiddleware = require('../middlewares/usersMiddleware.js');
 
 const usersMiddleware = new UsersMiddleware();
 
@@ -41,16 +41,17 @@ exports.nuevoUser = async (req, res, next) => {
         await usersMiddleware.nuevoUser(req.body);
 
         res.json({
-            mensaje: 'Se agregó un nuevo user'
+            mensaje: 'Se agregó un nuevo usuario'
         });
 
     } catch (error) {
         if (error.status === 400) {
-            return res.status(401).json({
+            return res.status(400).json({
                 mensaje: error.message
             });
         }
         if (error.status === 500) {
+            console.log(error)
             return res.status(500).json({
                 mensaje: "Internal server error"
             });
@@ -66,9 +67,12 @@ exports.login = async (req, res, next) => {
 
     try {
         console.log(req.body)
-        await usersMiddleware.loginUser(req.body);
+        const respuestaUsuario = await usersMiddleware.loginUser(req.body);
+        console.log(respuestaUsuario);
 
         res.json({
+            id: respuestaUsuario._id,
+            nombre: respuestaUsuario.name,
             mensaje: 'Login exitoso'
         });
 
@@ -122,6 +126,7 @@ exports.mostrarUser = async (req, res, next) => {
             });
         }
         if (error.status === 500) {
+            console.log(error)
             return res.status(500).json({
                 mensaje: "Internal server error"
             });
@@ -135,8 +140,9 @@ exports.mostrarUser = async (req, res, next) => {
 
 exports.actualizarUser = async (req, res, next) => {
     try {
-
+        console.log(req)
         await usersMiddleware.editarUser(req);
+       
 
         res.json({
             mensaje: 'Se actualizo la información'
@@ -144,6 +150,7 @@ exports.actualizarUser = async (req, res, next) => {
 
     } catch (error) {
 
+        console.log(error)
         if (error.status === 400) {
             return res.status(400).json({
                 mensaje: error.message

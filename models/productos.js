@@ -45,6 +45,7 @@ const productosSchema = new Schema({
         type: Boolean
     },
     condicion: {
+        type: String,
         enum: ['Nuevo', 'Usado', 'Semi-Nuevo']
     },
     stock: {

@@ -80,17 +80,18 @@ class UsersMiddleware {
 
             return users;
         } catch (error) {
+            console.log(error)
             if (error.status) {
                 throw error;
             }
+            console.log(error)
 
-            const err = new Error("Error interno del servidor");
+            const err = new Error(error);
             err.status = 500;
             throw err;
         }
 
     }
-
 
     async loginUser(data) {
         try {
@@ -118,6 +119,7 @@ class UsersMiddleware {
     }
 
     async editarUser(data) {
+
         const validaciones = [];
         this.validacionGeneral(data.body, validaciones);
 
@@ -155,6 +157,31 @@ class UsersMiddleware {
     }
 
     async editarPassword(data) {
+
+        try {
+
+            const usuarioPassword = await Users.findOne({
+                _id: data.params.idUser,
+                password: data.body.passwordActual
+            });
+
+            if (!usuarioPassword) {
+                const error = new Error("Credenciales incorrectas");
+                error.status = 401;
+                throw error;
+            }
+
+        } catch (error) {
+            console.log(error)
+            if (error.status) {
+                throw error;
+            }
+
+            const err = new Error("Error interno del servidor");
+            err.status = 500;
+            throw err;
+        }
+
         const validaciones = [];
 
         this.validarPassword(data.body, validaciones);
@@ -197,6 +224,8 @@ class UsersMiddleware {
             throw err;
         }
 
+        console.log(data.file.filename)
+
         const data_actualizada = {
             "verificacion": {
                 estado: 'pendiente',
@@ -218,6 +247,8 @@ class UsersMiddleware {
                     returnDocument: 'after'
                 });
 
+                console.log(verificacion_actualizada)
+
 
                 if (!verificacion_actualizada) {
                     console.log(verificacion_actualizada)
@@ -228,8 +259,6 @@ class UsersMiddleware {
                 return verificacion_actualizada;
 
             }
-
-            console.log('No se encontró el usuario o no se pudo actualizar')
 
         } catch (error) {
             if (error.status) {
@@ -340,6 +369,7 @@ class UsersMiddleware {
             if (error.status) {
                 throw error;
             }
+            console.log(error)
             const err = new Error("Error interno del servidor");
             err.status = 500;
             throw err;
