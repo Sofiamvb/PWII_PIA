@@ -145,7 +145,6 @@ class AdminMiddleware {
 
 }
 
-
 async editarCategoria(idCategoria, data) {
 
     try {
@@ -182,7 +181,6 @@ async editarCategoria(idCategoria, data) {
 
 }
 
-
 async eliminarCategoria(idCategoria) {
 
     try {
@@ -216,7 +214,6 @@ async eliminarCategoria(idCategoria) {
     }
 
     //PRODCUTOS
-
     async mostrarProductos() {
         try {
             const productos = await Productos.find({}).populate('usuario', 'name apellidoP');
@@ -302,8 +299,6 @@ async eliminarCategoria(idCategoria) {
         }
     }
 
-    
-
      async cambiarDisponibilidad(idProducto, disponibilidad) {
 
         try {
@@ -343,7 +338,6 @@ async eliminarCategoria(idCategoria) {
     }
 
     //PUNTO DE ENCUENTRO
-
     async nuevoPunto(data) {
 
         try {
@@ -402,12 +396,50 @@ async eliminarCategoria(idCategoria) {
                 const error = new Error("El punto no existe");
                 error.status = 404;
                 throw error;
-
             }
 
             return punto;
 
         } catch (error) {
+            console.log(error)
+
+            if (error.status) {
+                throw error;
+            }
+
+            const err = new Error("Error interno del servidor");
+            err.status = 500;
+            throw err;
+
+        }
+
+    }
+
+    async activarPunto(idPunto) {
+
+        try {
+
+            const punto = await PuntoEncuentro.findByIdAndUpdate(
+                idPunto,
+                {
+                    estado: true
+                },
+                {
+                    new: true
+                }
+            );
+
+            if (!punto) {
+
+                const error = new Error("El punto no existe");
+                error.status = 404;
+                throw error;
+            }
+
+            return punto;
+
+        } catch (error) {
+            console.log(error)
 
             if (error.status) {
                 throw error;
@@ -452,9 +484,7 @@ async eliminarCategoria(idCategoria) {
 
     }
 
-
     //TRANSACCIONES
-
     async mostrarTransacciones() { 
 
          try {
@@ -477,7 +507,6 @@ async eliminarCategoria(idCategoria) {
     }
 
     //REPORTES
-
     async mostrarReportes() {
         try {
 
@@ -524,7 +553,6 @@ async eliminarCategoria(idCategoria) {
 
     }
 
-
     async rechazarReporte(idReporte) {
 
         try {
@@ -563,7 +591,6 @@ async eliminarCategoria(idCategoria) {
 
     }
 
-
     async eliminarReporte(idReporte) {
 
         try {
@@ -596,6 +623,4 @@ async eliminarCategoria(idCategoria) {
     
 }
 
-
- 
 module.exports = new AdminMiddleware();

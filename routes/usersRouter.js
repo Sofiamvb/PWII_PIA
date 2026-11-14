@@ -26,17 +26,14 @@ module.exports = function () {
 
     /*ADMIND*/
 
-    //CAMBIAR ESTADO DE LA VERIFICACION A APROBADO O RECHAZADO
+    // Muestra las verificaciones pendientes 
     router.get('/admin/mostrarVerificaciones', userController.mostrarVerificaciones);
 
-    //MOSTRAR USUARIOS CON EL ESTADO PENDIENTE DE DOCUMENTACION ADM
+    // Mostrar todas las verificaciones
+    router.get('/admin/mostrarTodasVerificaciones', userController.mostrarTodasVerificaciones);
+
+    // Cambia el status de la verificacion
     router.patch('/admin/verificacionEstatus/:idUser', userController.verificacionAdmin);
-
-    //obtener todos los usuarios
-    //router.get('/users', userController.mostrarUsers);
-
-    //Eliminar un usuario por id
-    //router.delete('/users/:idUser', userController.eliminarUser);
 
     //Mostrar usuarios
     router.get('/admin/usuarios',

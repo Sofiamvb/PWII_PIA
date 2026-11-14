@@ -241,6 +241,25 @@ exports.mostrarVerificaciones = async (req, res, next) => {
     }
 }
 
+exports.mostrarTodasVerificaciones = async (req, res, next) => {
+    try {
+
+        const usersVerificaciones = await usersMiddleware.mostrarVerificaciones();
+        console.log(usersVerificaciones);
+        res.json(usersVerificaciones);
+
+    } catch (error) {
+        if (error.status === 500) {
+            return res.status(500).json({
+                mensaje: error.message
+            });
+        }
+
+        next(error);
+    }
+}
+
+
 exports.verificacionAdmin = async (req, res, next) => {
     try {
 

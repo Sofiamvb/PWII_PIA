@@ -38,7 +38,8 @@ const usersSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['activo', 'suspendido', 'bloqueado']
+        enum: ['activo', 'suspendido', 'bloqueado'],
+        default: 'activo'
     },
     institucion: {
         type: String,

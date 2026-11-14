@@ -57,9 +57,7 @@ exports.suspenderUsuario = async (req, res, next) => {
 
 }
 
-
 //CATEGORIAS
-
 exports.mostrarCategorias = async (req, res, next) => {
 
     try {
@@ -86,7 +84,6 @@ exports.mostrarCategorias = async (req, res, next) => {
     }
 
 }
-
 
 exports.nuevaCategoria = async (req, res, next) => {
 
@@ -148,7 +145,6 @@ exports.editarCategoria = async (req, res, next) => {
 
 }
 
-
 exports.eliminarCategoria = async (req, res, next) => {
 
     try {
@@ -179,7 +175,6 @@ exports.eliminarCategoria = async (req, res, next) => {
 }
 
 //PRODUCTOS
-
 exports.mostrarProductos = async (req, res, next) => {
 
     try {
@@ -202,7 +197,6 @@ exports.mostrarProductos = async (req, res, next) => {
     }
 
 }
-
 
 exports.aprobarProducto = async (req, res, next) => {
 
@@ -232,12 +226,10 @@ exports.aprobarProducto = async (req, res, next) => {
 
 }
 
-
 exports.rechazarProducto = async (req, res, next) => {
 
     try {
-
-
+        
         const producto = await adminMiddleware.rechazarProducto(
             req.params.idProducto
         );
@@ -260,7 +252,6 @@ exports.rechazarProducto = async (req, res, next) => {
     }
 
 }
-
 
 exports.cambiarDisponibilidad = async (req, res, next) => {
 
@@ -292,7 +283,6 @@ exports.cambiarDisponibilidad = async (req, res, next) => {
 }
 
 //PUNTOS DE COMPRA
-
 exports.mostrarPuntos = async (req, res, next) => {
 
     try {
@@ -315,7 +305,6 @@ exports.mostrarPuntos = async (req, res, next) => {
     }
 
 }
-
 
 exports.nuevoPunto = async (req, res, next) => {
 
@@ -342,7 +331,6 @@ exports.nuevoPunto = async (req, res, next) => {
     }
 
 }
-
 
 exports.desactivarPunto = async (req, res, next) => {
 
@@ -372,6 +360,32 @@ exports.desactivarPunto = async (req, res, next) => {
 
 }
 
+exports.activarPunto = async (req, res, next) => {
+
+    try {
+
+        const punto = await adminMiddleware.activarPunto(
+            req.params.idPunto
+        );
+
+        res.json({
+            mensaje: 'Punto activado',
+            punto: punto
+        });
+
+    } catch (error) {
+
+        if (error.status) {
+            return res.status(error.status).json({
+                mensaje: error.message
+            });
+        }
+
+        next(error);
+
+    }
+
+}
 
 exports.eliminarPunto = async (req, res, next) => {
 
@@ -401,7 +415,6 @@ exports.eliminarPunto = async (req, res, next) => {
 }
 
 //TRANSACCIONES
-
 exports.mostrarTransacciones = async (req, res, next) => {
 
     try {
@@ -426,7 +439,6 @@ exports.mostrarTransacciones = async (req, res, next) => {
 }
 
 //REPORTES
-
 exports.mostrarReportes = async (req, res, next) => {
 
     try {
@@ -449,7 +461,6 @@ exports.mostrarReportes = async (req, res, next) => {
     }
 
 }
-
 
 exports.mostrarReporte = async (req, res, next) => {
 
@@ -475,7 +486,6 @@ exports.mostrarReporte = async (req, res, next) => {
     }
 
 }
-
 
 exports.rechazarReporte = async (req, res, next) => {
 
@@ -504,7 +514,6 @@ exports.rechazarReporte = async (req, res, next) => {
     }
 
 }
-
 
 exports.eliminarReporte = async (req, res, next) => {
 

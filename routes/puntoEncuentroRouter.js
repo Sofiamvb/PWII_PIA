@@ -16,6 +16,10 @@ module.exports = function () {
     router.put('/admin/puntos/:idPunto/desactivar',
         adminController.desactivarPunto);
 
+    //Activar punto de compra
+    router.put('/admin/puntos/:idPunto/activar',
+        adminController.activarPunto);
+
     //Eliminar punto de compra
     router.delete('/admin/puntos/:idPunto',
         adminController.eliminarPunto);

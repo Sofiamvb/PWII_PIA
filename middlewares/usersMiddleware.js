@@ -230,7 +230,8 @@ class UsersMiddleware {
             "verificacion": {
                 estado: 'pendiente',
                 tipoDocumento: documento.trim().toLowerCase(),
-                documentoUrl: data.file.filename
+                documentoUrl: data.file.filename,
+                fechaEnvio: new Date()
             }
 
         }
@@ -283,6 +284,29 @@ class UsersMiddleware {
                 return null;
             }
             return users_encontrados;
+
+
+
+        } catch (error) {
+            console.log(error);
+            next();
+        }
+
+    }
+
+    //Mostrar todas las verificaciones
+    async mostrarVerificaciones() {
+
+        try {
+
+            const usersVerificados = await Users.find()
+            console.log(usersVerificados)
+            if (!usersVerificados) {
+                return null;
+            }
+            return usersVerificados;
+
+
 
         } catch (error) {
             console.log(error);
