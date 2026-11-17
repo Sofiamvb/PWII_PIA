@@ -41,7 +41,7 @@ module.exports = function () {
     router.get('/admin/productos',
         adminController.mostrarProductos);
 
-    //Agregar producto
+    //Aporbar producto
     router.put('/admin/productos/:idProducto/aprobar',
         adminController.aprobarProducto);
 
