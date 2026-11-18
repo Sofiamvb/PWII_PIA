@@ -3,7 +3,7 @@ const { json } = require('express');
 const Categorias = require('../models/categorias');
 
 
-class CategoriasMiddleware {
+class CategoriasService {
 
     async encontrarCategoria(nombre_categoria) {
         const categoria_encontrada = await Categorias.findOne({ nombre_categoria: nombre_categoria })
@@ -17,4 +17,4 @@ class CategoriasMiddleware {
 
 }
 
-module.exports = CategoriasMiddleware;
+module.exports = CategoriasService;

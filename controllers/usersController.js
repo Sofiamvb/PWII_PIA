@@ -1,8 +1,10 @@
 const Users = require('../models/users');
 
-const UsersMiddleware = require('../middlewares/usersMiddleware.js');
+const { firmarToken } = require('../utils/jwt.js');
 
-const usersMiddleware = new UsersMiddleware();
+const UsersService = require('../services/usersService.js');
+
+const usersService = new UsersService();
 
 const configuracionMulter = require('../utils/configMulter.js');
 
@@ -64,7 +66,7 @@ exports.subirImagenPerfil = (req, res, next) => {
 exports.actualizarImagenPerfil = async (req, res, next) => {
     try {
 
-        const usuario = await usersMiddleware.actualizarImagenUser(
+        const usuario = await usersService.actualizarImagenUser(
             req.params.idUser,
             req.file.filename
         );
@@ -91,9 +93,14 @@ exports.nuevoUser = async (req, res, next) => {
 
     try {
 
-        await usersMiddleware.nuevoUser(req.body);
+        const usuarioCreado = await usersService.nuevoUser(req.body);
 
         res.json({
+            // Al registrarse ya queda con sesion: la pantalla de verificacion que
+            // sigue sube un archivo y esa ruta pide token
+            token: firmarToken(usuarioCreado),
+            id: usuarioCreado._id,
+            rol: usuarioCreado.rol,
             mensaje: 'Se agregó un nuevo usuario'
         });
 
@@ -120,12 +127,18 @@ exports.login = async (req, res, next) => {
 
     try {
         console.log(req.body)
-        const respuestaUsuario = await usersMiddleware.loginUser(req.body);
+        const respuestaUsuario = await usersService.loginUser(req.body);
         console.log(respuestaUsuario);
 
         res.json({
+            token: firmarToken(respuestaUsuario),
             id: respuestaUsuario._id,
             nombre: respuestaUsuario.name,
+            rol: respuestaUsuario.rol,
+            // El front necesita el estado para saber si le ofrece verificarse
+            verificacion: respuestaUsuario.verificacion
+                ? respuestaUsuario.verificacion.estado
+                : 'sin enviar',
             mensaje: 'Login exitoso'
         });
 
@@ -169,7 +182,7 @@ exports.buscarUsuarios = async (req, res, next) => {
 
     try {
 
-        const usuarios = await usersMiddleware.buscarUsuarios(req.query.buscar);
+        const usuarios = await usersService.buscarUsuarios(req.query.buscar);
         res.json(usuarios);
 
     } catch (error) {
@@ -187,7 +200,7 @@ exports.mostrarUser = async (req, res, next) => {
 
     try {
 
-        const infoUser = await usersMiddleware.mostrarInfoUser(req);
+        const infoUser = await usersService.mostrarInfoUser(req);
         console.log(infoUser);
         res.json(infoUser);
 
@@ -213,7 +226,7 @@ exports.mostrarUser = async (req, res, next) => {
 exports.actualizarUser = async (req, res, next) => {
     try {
         console.log(req)
-        await usersMiddleware.editarUser(req);
+        await usersService.editarUser(req);
        
 
         res.json({
@@ -243,7 +256,7 @@ exports.actualizarUser = async (req, res, next) => {
 exports.actualizarPassword = async (req, res, next) => {
     try {
 
-        await usersMiddleware.editarPassword(req);
+        await usersService.editarPassword(req);
 
         res.json({
             mensaje: 'Se actualizo la información'
@@ -270,7 +283,7 @@ exports.actualizarPassword = async (req, res, next) => {
 exports.verificacion = async (req, res, next) => {
     try {
 
-        await usersMiddleware.verificacionUser(req);
+        await usersService.verificacionUser(req);
 
         res.json({
             mensaje: 'Se ha enviado la información'
@@ -298,7 +311,7 @@ exports.verificacion = async (req, res, next) => {
 exports.mostrarVerificaciones = async (req, res, next) => {
     try {
 
-        const usersPendientes = await usersMiddleware.mostrarVerificacionesPendientes();
+        const usersPendientes = await usersService.mostrarVerificacionesPendientes();
         console.log(usersPendientes);
         res.json(usersPendientes);
 
@@ -316,7 +329,7 @@ exports.mostrarVerificaciones = async (req, res, next) => {
 exports.mostrarTodasVerificaciones = async (req, res, next) => {
     try {
 
-        const usersVerificaciones = await usersMiddleware.mostrarVerificaciones();
+        const usersVerificaciones = await usersService.mostrarVerificaciones();
         console.log(usersVerificaciones);
         res.json(usersVerificaciones);
 
@@ -335,7 +348,7 @@ exports.mostrarTodasVerificaciones = async (req, res, next) => {
 exports.verificacionAdmin = async (req, res, next) => {
     try {
 
-        await usersMiddleware.actualizarVerificacionUser(req);
+        await usersService.actualizarVerificacionUser(req);
 
         res.json({
             mensaje: 'Se actualizo la información'

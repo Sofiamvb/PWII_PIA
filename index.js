@@ -39,8 +39,17 @@ app.use('/uploads', express.static('uploads')); // http://localhost:3000/uploads
 
 
 //Definir puerto y arrancar
-const port = 3000;
-app.listen(port, () => {
+const port = process.env.PORT || 3000;
+const server = app.listen(port, () => {
     console.log(`El servidor esta funcionando en el puerto ${port}`)
+});
+
+// Si el puerto ya esta ocupado por otra app, avisar en lugar de quedarse callado
+server.on('error', (error) => {
+    if (error.code === 'EADDRINUSE') {
+        console.error(`El puerto ${port} ya esta ocupado. Cambia PORT en el archivo .env`);
+        process.exit(1);
+    }
+    throw error;
 });
 

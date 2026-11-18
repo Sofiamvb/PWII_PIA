@@ -46,7 +46,7 @@ function manejarError(error, mensajeLog) {
     return err;
 }
 
-class ReportesMiddleware {
+class ReportesService {
 
     // CREAR REPORTE DE UNA COMPRA
     // Solo el comprador o el vendedor del pedido pueden reportarlo,
@@ -182,4 +182,4 @@ class ReportesMiddleware {
 
 }
 
-module.exports = ReportesMiddleware;
+module.exports = ReportesService;

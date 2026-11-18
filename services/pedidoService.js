@@ -1,11 +1,11 @@
 const { json } = require('express');
 const productos = require('../models/productos');
 const Pedidos = require('../models/pedidos');
-const ProductoMiddleware = require('./productoMiddleware');
-const productoMiddleware = new ProductoMiddleware();
+const ProductoService = require('./productoService');
+const productoService = new ProductoService();
 
 
-class PedidoMiddleware {
+class PedidoService {
 
 async comprarProducto(idProducto, idComprador, cantidad, data) {
 
@@ -234,4 +234,4 @@ async comprarProducto(idProducto, idComprador, cantidad, data) {
         }
     }
 
-    module.exports = PedidoMiddleware;
+    module.exports = PedidoService;

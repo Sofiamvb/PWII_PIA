@@ -1,4 +1,4 @@
-const adminMiddleware = require('../middlewares/adminMiddleware');
+const adminService = require('../services/adminService');
 
 //USUARIOS
 
@@ -7,7 +7,7 @@ exports.mostrarUsuarios = async (req, res, next) => {
     try {
 
 
-        const usuarios = await adminMiddleware.mostrarUsuarios();
+        const usuarios = await adminService.mostrarUsuarios();
 
         res.json(usuarios);
 
@@ -32,7 +32,7 @@ exports.suspenderUsuario = async (req, res, next) => {
     try {
 
 
-        const usuario = await adminMiddleware.suspenderUsuario(
+        const usuario = await adminService.suspenderUsuario(
             req.params.idUsuario
         );
 
@@ -63,7 +63,7 @@ exports.mostrarCategorias = async (req, res, next) => {
     try {
 
 
-        const categorias = await adminMiddleware.mostrarCategorias(
+        const categorias = await adminService.mostrarCategorias(
             req.query.buscar
         );
 
@@ -89,7 +89,7 @@ exports.nuevaCategoria = async (req, res, next) => {
 
     try {
 
-        const categoria = await adminMiddleware.nuevaCategoria(
+        const categoria = await adminService.nuevaCategoria(
             req.body
         );
 
@@ -119,7 +119,7 @@ exports.editarCategoria = async (req, res, next) => {
     try {
 
 
-        const categoria = await adminMiddleware.editarCategoria(
+        const categoria = await adminService.editarCategoria(
             req.params.idCategoria,
             req.body
         );
@@ -150,7 +150,7 @@ exports.eliminarCategoria = async (req, res, next) => {
     try {
 
 
-        await adminMiddleware.eliminarCategoria(
+        await adminService.eliminarCategoria(
             req.params.idCategoria
         );
 
@@ -180,7 +180,7 @@ exports.mostrarProductos = async (req, res, next) => {
     try {
 
 
-        const productos = await adminMiddleware.mostrarProductos();
+        const productos = await adminService.mostrarProductos();
 
         res.json(productos);
 
@@ -203,7 +203,7 @@ exports.aprobarProducto = async (req, res, next) => {
     try {
 
 
-        const producto = await adminMiddleware.aprobarProducto(
+        const producto = await adminService.aprobarProducto(
             req.params.idProducto
         );
 
@@ -230,7 +230,7 @@ exports.rechazarProducto = async (req, res, next) => {
 
     try {
         
-        const producto = await adminMiddleware.rechazarProducto(
+        const producto = await adminService.rechazarProducto(
             req.params.idProducto
         );
 
@@ -258,7 +258,7 @@ exports.cambiarDisponibilidad = async (req, res, next) => {
     try {
 
 
-        const producto = await adminMiddleware.cambiarDisponibilidad(
+        const producto = await adminService.cambiarDisponibilidad(
             req.params.idProducto,
             req.body.disponibilidad
         );
@@ -288,7 +288,7 @@ exports.mostrarPuntos = async (req, res, next) => {
     try {
 
 
-        const puntos = await adminMiddleware.mostrarPuntos();
+        const puntos = await adminService.mostrarPuntos();
 
         res.json(puntos);
 
@@ -311,7 +311,7 @@ exports.nuevoPunto = async (req, res, next) => {
     try {
 
 
-        const punto = await adminMiddleware.nuevoPunto(req.body);
+        const punto = await adminService.nuevoPunto(req.body);
 
         res.json({
             mensaje: 'Punto creado correctamente',
@@ -337,7 +337,7 @@ exports.desactivarPunto = async (req, res, next) => {
     try {
 
 
-        const punto = await adminMiddleware.desactivarPunto(
+        const punto = await adminService.desactivarPunto(
             req.params.idPunto
         );
 
@@ -364,7 +364,7 @@ exports.activarPunto = async (req, res, next) => {
 
     try {
 
-        const punto = await adminMiddleware.activarPunto(
+        const punto = await adminService.activarPunto(
             req.params.idPunto
         );
 
@@ -392,7 +392,7 @@ exports.eliminarPunto = async (req, res, next) => {
     try {
 
 
-        await adminMiddleware.eliminarPunto(
+        await adminService.eliminarPunto(
             req.params.idPunto
         );
 
@@ -420,7 +420,7 @@ exports.mostrarTransacciones = async (req, res, next) => {
     try {
 
 
-        const pedidos = await adminMiddleware.mostrarTransacciones();
+        const pedidos = await adminService.mostrarTransacciones();
 
         res.json(pedidos);
 
@@ -444,7 +444,7 @@ exports.mostrarReportes = async (req, res, next) => {
     try {
 
 
-        const reportes = await adminMiddleware.mostrarReportes();
+        const reportes = await adminService.mostrarReportes();
 
         res.json(reportes);
 
@@ -467,7 +467,7 @@ exports.mostrarReporte = async (req, res, next) => {
     try {
 
 
-        const reporte = await adminMiddleware.mostrarReporte(
+        const reporte = await adminService.mostrarReporte(
             req.params.idReporte
         );
 
@@ -492,12 +492,12 @@ exports.rechazarReporte = async (req, res, next) => {
     try {
 
 
-        const reporte = await adminMiddleware.rechazarReporte(
+        const reporte = await adminService.rechazarReporte(
             req.params.idReporte
         );
 
         res.json({
-            mensaje: 'Reporte rechazado',
+            mensaje: 'Reporte cerrado',
             reporte: reporte
         });
 
@@ -520,7 +520,7 @@ exports.eliminarReporte = async (req, res, next) => {
     try {
 
 
-        await adminMiddleware.eliminarReporte(
+        await adminService.eliminarReporte(
             req.params.idReporte
         );
 

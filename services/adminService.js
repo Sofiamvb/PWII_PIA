@@ -7,7 +7,7 @@ const PuntoEncuentro = require('../models/puntoEncuentro');
 const Pedidos = require('../models/pedidos');
 const Reportes = require('../models/reportes');
 
-class AdminMiddleware {
+class AdminService {
     
     //USUARIOS
 
@@ -184,6 +184,16 @@ async editarCategoria(idCategoria, data) {
 async eliminarCategoria(idCategoria) {
 
     try {
+
+        // Si se borra una categoria que usan publicaciones, esos productos se quedan
+        // con la categoria en null: ya no se pueden editar y su detalle truena
+        const enUso = await Productos.countDocuments({ categoria: idCategoria });
+
+        if (enUso > 0) {
+            const error = new Error(`No se puede eliminar: ${enUso} publicacion(es) usan esta categoria`);
+            error.status = 400;
+            throw error;
+        }
 
         const categoria = await Categorias.findByIdAndDelete(
             idCategoria
@@ -458,6 +468,16 @@ async eliminarCategoria(idCategoria) {
 
         try {
 
+            // Igual que con las categorias: un producto sin punto truena el detalle y el checkout.
+            // Si ya no se quiere usar, se puede desactivar
+            const enUso = await Productos.countDocuments({ punto_encuentro: idPunto });
+
+            if (enUso > 0) {
+                const error = new Error(`No se puede eliminar: ${enUso} publicacion(es) usan este punto. Puedes desactivarlo`);
+                error.status = 400;
+                throw error;
+            }
+
             const punto = await PuntoEncuentro.findByIdAndDelete(idPunto);
 
             if (!punto) {
@@ -527,7 +547,13 @@ async eliminarCategoria(idCategoria) {
 
         try {
 
-            const reporte = await Reportes.findById(idReporte);
+            // Se traen los datos de las personas y del producto/pedido,
+            // si no la pantalla solo recibiria ids y no podria mostrar nada util
+            const reporte = await Reportes.findById(idReporte)
+                .populate('usuario_reporte', 'name apellidoP usuario email')
+                .populate('usuario_reportado', 'name apellidoP usuario email status')
+                .populate('producto', 'nombre_produ precio imagenes')
+                .populate('pedido', 'total_con_comision estado_pago fecha_pedido');
 
             if (!reporte) {
 
@@ -623,4 +649,4 @@ async eliminarCategoria(idCategoria) {
     
 }
 
-module.exports = new AdminMiddleware();
+module.exports = new AdminService();

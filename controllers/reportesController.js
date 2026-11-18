@@ -1,6 +1,6 @@
-const ReportesMiddleware = require('../middlewares/reportesMiddleware');
+const ReportesService = require('../services/reportesService');
 
-const reportesMiddleware = new ReportesMiddleware();
+const reportesService = new ReportesService();
 
 
 //CREAR REPORTE DE UNA COMPRA
@@ -8,7 +8,7 @@ exports.reportarCompra = async (req, res, next) => {
 
     try {
 
-        const reporte = await reportesMiddleware.reportarCompra(
+        const reporte = await reportesService.reportarCompra(
             req.params.idPedido,
             req.body
         );
@@ -40,7 +40,7 @@ exports.reportarUsuario = async (req, res, next) => {
 
     try {
 
-        const reporte = await reportesMiddleware.reportarUsuario(req.body);
+        const reporte = await reportesService.reportarUsuario(req.body);
 
         res.json({
             mensaje: 'Reporte enviado correctamente',

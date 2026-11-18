@@ -4,7 +4,7 @@ const Users = require('../models/users');
 const fs = require('fs');
 const path = require('path');
 
-class UsersMiddleware {
+class UsersService {
     validacionGeneral(data, validaciones) {
         const { name, apellidoP, apellidoM, usuario, email, institucion, carrera } = data;
 
@@ -167,9 +167,11 @@ class UsersMiddleware {
                 password: data.body.passwordActual
             });
 
+            // 400 y no 401: el frontend toma cualquier 401 como "sesion vencida"
+            // y cierra la sesion, y aqui la sesion esta bien, solo se escribio mal la contraseña
             if (!usuarioPassword) {
-                const error = new Error("Credenciales incorrectas");
-                error.status = 401;
+                const error = new Error("La contraseña actual es incorrecta");
+                error.status = 400;
                 throw error;
             }
 
@@ -491,4 +493,4 @@ class UsersMiddleware {
 
 }
 
-module.exports = UsersMiddleware;
+module.exports = UsersService;

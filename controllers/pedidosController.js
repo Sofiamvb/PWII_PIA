@@ -1,7 +1,9 @@
 const Pedidos = require('../models/pedidos');
-const PedidoMiddleware = require('../middlewares/pedidoMiddleware');
+const PedidoService = require('../services/pedidoService');
+const CalificacionService = require('../services/calificacionService');
 
-const pedidoMiddleware = new PedidoMiddleware();
+const pedidoService = new PedidoService();
+const calificacionService = new CalificacionService();
 
 
 //Mostrar todos los pedidos
@@ -175,9 +177,14 @@ exports.mostrarPedido = async (req, res, next) => {
         }
 
 
+        // Si ya la calificaron, la pantalla muestra las estrellas que se pusieron;
+        // si no, muestra el formulario para calificar
+        const calificacion = await calificacionService.calificacionDePedido(pedido._id);
+
         res.json({
             mensaje: 'Estos son los datos de la compra',
-            pedido: pedido
+            pedido: pedido,
+            calificacion: calificacion
         });
 
 
@@ -212,21 +219,23 @@ exports.cancelarPedido = async (req, res, next) => {
         }
 
 
-        if (pedido.estado_entrega === 'Cancelado') {
+        // El modelo no tiene 'estado_entrega' (Mongoose lo descartaba al guardar),
+        // asi que estas revisiones nunca se cumplian. Se usa estado_pago, que si existe:
+        // Reembolsado = ya se cancelo, Liberado = el pago ya se le dio al vendedor (entregado)
+        if (pedido.estado_pago === 'Reembolsado') {
             return res.status(400).json({
                 mensaje: 'La compra ya esta cancelada'
             });
         }
 
 
-        if (pedido.estado_entrega === 'Entregado') {
+        if (pedido.estado_pago === 'Liberado') {
             return res.status(400).json({
                 mensaje: 'No puedes cancelar una compra ya entregada'
             });
         }
 
 
-        pedido.estado_entrega = 'Cancelado';
         pedido.estado = false;
         pedido.estado_pago = 'Reembolsado';
 
@@ -256,7 +265,7 @@ exports.comprarProducto = async (req, res, next) => {
     try {
 
         const pedido =
-            await pedidoMiddleware.comprarProducto(
+            await pedidoService.comprarProducto(
 
                 req.params.idProducto,
                 req.params.idComprador,

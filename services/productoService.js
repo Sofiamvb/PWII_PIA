@@ -1,26 +1,30 @@
 const { json } = require('express');
+const fs = require('fs');
+const path = require('path');
 const productos = require('../models/productos');
 const Reportes = require('../models/reportes');
 const Pedidos = require('../models/pedidos');
 const PuntoEncuentro = require('../models/puntoEncuentro');
-const CategoriasMiddleware = require('./categoriasMiddleware')
+const CategoriasService = require('./categoriasService')
 
-const categoriasMiddleware = new CategoriasMiddleware();
+const categoriasService = new CategoriasService();
 
 
-class ProductoMiddleware {
+class ProductoService {
 
     async traerProductos(data) {
         try {
-            const { precio_inicio, precio_final, categoria } = data;
+            const { precio_inicio, precio_final, categoria, buscar } = data;
 
             console.log(precio_inicio, precio_final, categoria)
 
+            // Si llega algo que no es numero (texto, por ejemplo) se ignora,
+            // porque un NaN en el filtro haria que Mongo no devuelva nada
+            const desde = Number(precio_inicio ?? 0);
+
             const filtro = {
                 precio: {
-                    // Si el valor de la izquierda no existe, esta como nulo o como undefined tomamos el valor de la derecha como default
-                    // Si el valor de la izquierda si existe, se queda como esta.
-                    $gte: Number(precio_inicio ?? 0)
+                    $gte: isNaN(desde) ? 0 : desde
                 }
             }
 
@@ -31,7 +35,7 @@ class ProductoMiddleware {
             */
 
 
-            if (precio_final != null && precio_final !== '') {
+            if (precio_final != null && precio_final !== '' && !isNaN(Number(precio_final))) {
                 filtro.precio.$lte = Number(precio_final);
                 /*
                 const precio = {
@@ -42,7 +46,7 @@ class ProductoMiddleware {
             }
 
             if (categoria != null && categoria !== '') {
-                const categoria_encontrada = await categoriasMiddleware.encontrarCategoria(categoria);
+                const categoria_encontrada = await categoriasService.encontrarCategoria(categoria);
                 if (!categoria_encontrada) {
                     return {
                         mensaje: "Categoria no encontrada",
@@ -54,7 +58,23 @@ class ProductoMiddleware {
             }
 
 
-            const producto = await productos.find(filtro);
+            let producto = await productos.find(filtro);
+
+            // Busqueda por texto: se compara en minusculas con includes, que es
+            // lo mismo que hace el buscador de un navegador con Ctrl+F.
+            // Se filtra aqui y no en la consulta 
+            if (buscar != null && buscar.trim() !== '') {
+
+                const texto = buscar.trim().toLowerCase();
+
+                producto = producto.filter(unProducto => {
+
+                    const nombre = (unProducto.nombre_produ || '').toLowerCase();
+                    const descripcion = (unProducto.descripcion || '').toLowerCase();
+
+                    return nombre.includes(texto) || descripcion.includes(texto);
+                });
+            }
 
             return producto;
 
@@ -84,8 +104,9 @@ class ProductoMiddleware {
                 throw error;
 
             }
-            
-            
+
+            // La reputacion del vendedor ya viene en el populate de 'usuario',
+            // asi que no hace falta ninguna consulta extra aqui
             return producto;
 
            
@@ -166,19 +187,31 @@ class ProductoMiddleware {
         }
 
     //ELIMINAR PRODUCTO POR ID
-    async eliminarProducto(idProducto) {
+    // idUsuario sale del token: solo el dueño puede borrar su publicacion
+    async eliminarProducto(idProducto, idUsuario) {
 
             try {
 
-                const producto = await productos.findByIdAndDelete(
-                    idProducto
-                );
+                const producto = await productos.findById(idProducto);
 
                 if (!producto) {
                     const error = new Error("El producto no existe");
                     error.status = 404;
                     throw error;
                 }
+
+                if (producto.usuario.toString() !== idUsuario.toString()) {
+                    const error = new Error("Solo puedes eliminar tus propias publicaciones");
+                    error.status = 403;
+                    throw error;
+                }
+
+                await productos.findByIdAndDelete(idProducto);
+
+                // Si no se borran, las fotos se quedan para siempre en /uploads
+                // sin que ningun producto las use
+                this.borrarImagenes(producto.imagenes);
+
                 return producto;
 
             } catch (error) {
@@ -198,6 +231,26 @@ class ProductoMiddleware {
             }
 
         }
+
+    // Borra del disco las fotos de un producto
+    borrarImagenes(imagenes) {
+
+        if (!imagenes || imagenes.length === 0) {
+            return;
+        }
+
+        imagenes.forEach(imagen => {
+
+            const ruta = path.join(__dirname, '../uploads/', imagen.url);
+
+            fs.unlink(ruta, (error) => {
+                if (error) {
+                    console.log('No se pudo borrar la imagen', imagen.url, error.message);
+                }
+            });
+
+        });
+    }
 
     //PUBLICAR NUEVO PRODUCTO
     async nuevoProducto(data) {
@@ -362,7 +415,7 @@ class ProductoMiddleware {
                     usuario_reporte: data.usuario_reporte,
 
                     // En un reporte de producto siempre se reporta a su vendedor
-                    // (para reportar a un usuario sin producto: reportesMiddleware.reportarUsuario)
+                    // (para reportar a un usuario sin producto: reportesService.reportarUsuario)
                     usuario_reportado: producto.usuario,
 
                     tipo_de_reporte: data.tipo_de_reporte,
@@ -541,7 +594,7 @@ class ProductoMiddleware {
 
     }
 
-module.exports = ProductoMiddleware;
+module.exports = ProductoService;
 
 /*
                 const nueva_categoria = new categorias({

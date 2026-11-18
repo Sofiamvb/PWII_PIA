@@ -1,8 +1,8 @@
 const productos = require('../models/productos');
 const Pedidos = require('../models/pedidos');
-const ProductoMiddleware = require('../middlewares/productoMiddleware');
+const ProductoService = require('../services/productoService');
 
-const productoMiddleware = new ProductoMiddleware();
+const productoService = new ProductoService();
 
 const multer = require('multer');
 const configuracionMulter = require('../utils/configMulter');
@@ -64,7 +64,7 @@ exports.editarArchivo = (req, res, next) => {
 exports.mostrarProductos = async (req, res, next) => {
     try {
         console.log(req.query)
-        const Productos = await productoMiddleware.traerProductos(req.query);
+        const Productos = await productoService.traerProductos(req.query);
         console.log(Productos);
         res.json(Productos);
 
@@ -149,7 +149,7 @@ exports.mostrarProducto = async (req, res, next) => {
 
     try {
 
-        const producto = await productoMiddleware.mostrarProductoPorId(
+        const producto = await productoService.mostrarProductoPorId(
             req.params.idProducto
         );
         res.json(producto);
@@ -180,7 +180,7 @@ exports.actualizarProducto = async (req, res, next) => {
             });
         }
 
-        const producto = await productoMiddleware.editarProducto(
+        const producto = await productoService.editarProducto(
             req.params.idProducto,
             datos
         );
@@ -208,8 +208,9 @@ exports.eliminarProducto = async (req, res, next) => {
 
     try {
 
-        const producto = await productoMiddleware.eliminarProducto(
-            req.params.idProducto
+        const producto = await productoService.eliminarProducto(
+            req.params.idProducto,
+            req.usuario.id
         );
 
         res.json({
@@ -252,7 +253,7 @@ exports.nuevoProducto = async (req, res, next) => {
         }
 
         const producto =
-            await productoMiddleware.nuevoProducto(datos);
+            await productoService.nuevoProducto(datos);
         res.json({
             mensaje: 'Publicacion enviada a revision', producto: producto
         });
@@ -274,7 +275,7 @@ exports.misPublicaciones = async (req, res, next) => {
     try {
 
         const publicaciones =
-            await productoMiddleware.mostrarPublicacionesUsuario(
+            await productoService.mostrarPublicacionesUsuario(
                 req.params.idUsuario,
                 req.query.categoria
             );
@@ -300,7 +301,7 @@ exports.nuevoReporte = async (req, res, next) => {
 
     try {
 
-        await usersMiddleware.reportarProducto(req.body, req.params.idProducto);
+        await usersService.reportarProducto(req.body, req.params.idProducto);
 
         res.json({
             mensaje: 'Se agregó un nuevo reporte'
@@ -327,7 +328,7 @@ exports.reportarProducto = async (req, res, next) => {
 
     try {
 
-        const reporte = await productoMiddleware.reportarProducto(
+        const reporte = await productoService.reportarProducto(
             req.params.idProducto,
             req.body
         );
@@ -358,7 +359,7 @@ exports.misReportes = async (req, res, next) => {
 
     try {
 
-        const reportes = await productoMiddleware.mostrarMisReportes(
+        const reportes = await productoService.mostrarMisReportes(
             req.params.idUsuario
         );
 
@@ -389,7 +390,7 @@ exports.mostrarPuntosEncuentro = async (req, res, next) => {
     try {
 
         const puntos =
-            await productoMiddleware.mostrarPuntosEncuentro();
+            await productoService.mostrarPuntosEncuentro();
 
         res.json({
             mensaje: 'Estos son los puntos de encuentro disponibles',
@@ -417,7 +418,7 @@ exports.elegirPuntoEncuentro = async (req, res, next) => {
 
     try {
 
-        await productoMiddleware.elegirPuntoEncuentro(
+        await productoService.elegirPuntoEncuentro(
             req.params.idProducto,
             req.params.idPunto
         );
