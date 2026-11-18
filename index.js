@@ -35,6 +35,9 @@ app.use('/', categoriasRouter());
 app.use('/', puntoEncuentroRouter());
 app.use('/', reportesRouter());
 
+app.use('/uploads', express.static('uploads')); // http://localhost:3000/uploads/9F1vPEnvb.pdf)
+
+
 //Definir puerto y arrancar
 const port = 3000;
 app.listen(port, () => {

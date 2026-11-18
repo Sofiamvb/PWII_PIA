@@ -361,6 +361,8 @@ class ProductoMiddleware {
 
                     usuario_reporte: data.usuario_reporte,
 
+                    // En un reporte de producto siempre se reporta a su vendedor
+                    // (para reportar a un usuario sin producto: reportesMiddleware.reportarUsuario)
                     usuario_reportado: producto.usuario,
 
                     tipo_de_reporte: data.tipo_de_reporte,

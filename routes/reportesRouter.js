@@ -1,8 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
+const reportesController = require('../controllers/reportesController');
 
 module.exports = function () {
+
+    //Crear reporte de un usuario (sin producto)
+    router.post('/reportes',
+        reportesController.reportarUsuario);
+
+    //Crear reporte de una compra
+    router.post('/reportes/compra/:idPedido',
+        reportesController.reportarCompra);
 
     //Mostrar reportes
     router.get('/admin/reportes',

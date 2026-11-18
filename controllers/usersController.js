@@ -32,6 +32,59 @@ exports.subirArchivo = (req, res, next) => {
     });
 }
 
+//Subir la foto de perfil (campo "imagen", solo imágenes)
+const uploadImagenPerfil = multer(configuracionMulter).single('imagen');
+
+exports.subirImagenPerfil = (req, res, next) => {
+    uploadImagenPerfil(req, res, (error) => {
+        if (error) {
+            return res.status(400).json({
+                mensaje: error.message
+            });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({
+                mensaje: 'Debes seleccionar una imagen'
+            });
+        }
+
+        // configMulter también acepta PDF; para la foto de perfil solo imágenes
+        if (!req.file.mimetype.startsWith('image/')) {
+            return res.status(400).json({
+                mensaje: 'La foto de perfil debe ser una imagen'
+            });
+        }
+
+        next();
+    });
+}
+
+//Actualizar la foto de perfil del usuario
+exports.actualizarImagenPerfil = async (req, res, next) => {
+    try {
+
+        const usuario = await usersMiddleware.actualizarImagenUser(
+            req.params.idUser,
+            req.file.filename
+        );
+
+        res.json({
+            mensaje: 'Foto de perfil actualizada',
+            imagen: usuario.imagen
+        });
+
+    } catch (error) {
+        if (error.status) {
+            return res.status(error.status).json({
+                mensaje: error.message
+            });
+        }
+
+        next(error);
+    }
+}
+
 //agregar un nuvo user
 
 exports.nuevoUser = async (req, res, next) => {
@@ -110,6 +163,25 @@ exports.login = async (req, res, next) => {
 }*/
 
 //mostrar user por ID
+
+//Buscar usuarios por texto: /users/buscar?buscar=texto
+exports.buscarUsuarios = async (req, res, next) => {
+
+    try {
+
+        const usuarios = await usersMiddleware.buscarUsuarios(req.query.buscar);
+        res.json(usuarios);
+
+    } catch (error) {
+        if (error.status === 500) {
+            return res.status(500).json({
+                mensaje: "Internal server error"
+            });
+        }
+
+        next(error);
+    }
+}
 
 exports.mostrarUser = async (req, res, next) => {
 

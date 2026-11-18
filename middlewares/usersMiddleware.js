@@ -1,6 +1,8 @@
 
 const { json } = require('express');
 const Users = require('../models/users');
+const fs = require('fs');
+const path = require('path');
 
 class UsersMiddleware {
     validacionGeneral(data, validaciones) {
@@ -393,6 +395,91 @@ class UsersMiddleware {
             if (error.status) {
                 throw error;
             }
+            console.log(error)
+            const err = new Error("Error interno del servidor");
+            err.status = 500;
+            throw err;
+        }
+
+    }
+
+    //Actualizar la foto de perfil (guarda el nombre del archivo nuevo y borra el anterior)
+    async actualizarImagenUser(idUser, nombreArchivo) {
+
+        try {
+
+            const usuario = await Users.findById(idUser);
+
+            if (!usuario) {
+                const err = new Error('El usuario no existe');
+                err.status = 404;
+                throw err;
+            }
+
+            const imagenAnterior = usuario.imagen;
+
+            usuario.imagen = nombreArchivo;
+            await usuario.save();
+
+            // Borrar del disco la foto anterior para que no se acumulen archivos
+            if (imagenAnterior) {
+                const rutaAnterior = path.join(__dirname, '../uploads/', imagenAnterior);
+
+                fs.unlink(rutaAnterior, (error) => {
+                    if (error) {
+                        console.log('No se pudo borrar la imagen anterior:', error.message);
+                    }
+                });
+            }
+
+            return usuario;
+
+        } catch (error) {
+
+            if (error.status) {
+                throw error;
+            }
+
+            if (error.name === 'CastError') {
+                const err = new Error("El ID del usuario no es valido");
+                err.status = 400;
+                throw err;
+            }
+
+            console.log(error);
+            const err = new Error("Error interno del servidor");
+            err.status = 500;
+            throw err;
+        }
+
+    }
+
+    //Buscar usuarios por usuario, nombre o apellido (para el buscador de reportes)
+    async buscarUsuarios(buscar) {
+
+        // Si no escribieron nada, no regresamos a nadie
+        if (!buscar || buscar.trim() === '') {
+            return [];
+        }
+
+        // Escapar caracteres especiales para que un "(" o "*" no rompa el regex
+        const texto = buscar.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+        try {
+
+            const usuarios = await Users.find({
+                $or: [
+                    { usuario: { $regex: texto, $options: 'i' } },
+                    { name: { $regex: texto, $options: 'i' } },
+                    { apellidoP: { $regex: texto, $options: 'i' } }
+                ]
+            })
+                .select('_id name apellidoP usuario')   // solo datos públicos
+                .limit(10);
+
+            return usuarios;
+
+        } catch (error) {
             console.log(error)
             const err = new Error("Error interno del servidor");
             err.status = 500;

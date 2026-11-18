@@ -18,8 +18,14 @@ module.exports = function () {
     //actualizar un password por id
     router.put('/users/password/:idUser', userController.actualizarPassword);
 
+    //Actualizar foto de perfil (archivo en el campo "imagen")
+    router.put('/users/imagen/:idUser', userController.subirImagenPerfil, userController.actualizarImagenPerfil);
+
     //Carga de documentos del usuario por ID
     router.post('/users/verificacion/:idUser', userController.subirArchivo, userController.verificacion);
+
+    //Buscar usuarios (buscador de reportes): /users/buscar?buscar=texto
+    router.get('/users/buscar', userController.buscarUsuarios);
 
     //Mostrar info de usuario por id en perfil
     router.get('/useresInfo/:idUser', userController.mostrarUser);

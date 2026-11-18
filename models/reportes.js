@@ -20,7 +20,8 @@ const reportesSchema = new Schema({
     },
     tipo_de_reporte:{
         type: String,
-        enum:['producto sospechoso', 'información incorrecta', 'publicación inapropiada', 'usuario, fraude', 'problema en transacción']
+        enum:['producto sospechoso', 'información incorrecta', 'publicación inapropiada', 
+            'usuario, fraude', 'problema en transacción']
     },
     motivo: {
         type: String,
